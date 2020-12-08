@@ -1,35 +1,8 @@
-#include <stdio.h>
+#include "object.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
-/*
-Khai báo node
-*/
-
-typedef struct 
-{
-	char user_name[20];
-	char password[20];
-	int status;
-}user;
-
-typedef struct node node;
-
-typedef struct node {
-	void *element;
-	node *next;
-}node;
-
-/*
-Một node gồm root, cur,prev, tail
-*/
-
-typedef struct singleList{
-  node * root;
-  node * cur;
-  node * prev;
-  node * tail;
-} singleList;
 
 /*
 Các hàm khởi tạo
@@ -212,7 +185,7 @@ int printUser(singleList list)
 	while(list.cur != NULL)
       {
         i++;
-        printf("%s\n", ((user*)list.cur->element)->user_name);
+        printf("%s\n", ((user_struct*)list.cur->element)->user_name);
         list.cur = list.cur->next;
       }
     return i;

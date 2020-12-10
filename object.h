@@ -1,3 +1,4 @@
+typedef struct node node;
 
 typedef struct node {
 	void *element;
@@ -20,6 +21,11 @@ typedef struct user
 	int status;
 }user_struct;
 
+typedef struct simple_user
+{
+	char user_name[20];
+}simple_user_struct;
+
 typedef struct file {
     char name[50];
     char owner[50];
@@ -28,10 +34,15 @@ typedef struct file {
     int status;
 }file_struct;
 
+typedef struct simple_file {
+    char file_name[50];
+}simple_file_struct;
+
 typedef struct group{
-    char name[50];
+    char group_name[50];
     char owner[50];
     singleList members;
     singleList files;
-    int status;
+    int number_of_members;
+    int number_of_files;
 }group_struct;

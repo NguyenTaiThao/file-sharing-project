@@ -6,7 +6,6 @@
 #include <string.h>
 #include<stdlib.h> 
 
-
 int check_new_password(char new_password[100]){
 	for(int i = 0; i < strlen(new_password); i++){
 		if((new_password[i] < '0' || new_password[i] > '9') && 
@@ -15,6 +14,7 @@ int check_new_password(char new_password[100]){
 		{ 
 			return 0;
 		}
+		
 	}
 	return 1;
 }
@@ -55,6 +55,8 @@ int main(int argc, char *argv[])
 		printf("\nConnection Failed \n"); 
 		return -1; 
 	} 
+
+
 	// ============================Start to communicate with Server======================
 	// ==================================================================================
 	do {
@@ -81,6 +83,8 @@ int main(int argc, char *argv[])
 	}while(1);	
 	// close the descriptor 
 	close(sock); 
+	
+					
 	
 	return 0; 
 } 

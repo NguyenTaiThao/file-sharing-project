@@ -80,7 +80,21 @@ void insertToList(singleList *list){
 
 }
 
+
 void readUserFile(){
+	char str[100];
+	FILE * f = fopen("user.txt","r");
+	if(f == NULL)
+	{
+		perror("Error while opening the file.\n");
+		exit(EXIT_FAILURE);
+	}
+	while (fgets(str, sizeof(str), f) != NULL) {
+        char *name = strtok(str, " ");
+        char *pass = strtok(NULL, " ");
+        int status = atoi(strtok(NULL, " "));
+    }
+    fclose(f);
 
 }
 

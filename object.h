@@ -38,6 +38,9 @@ typedef struct simple_file {
     char file_name[50];
 }simple_file_struct;
 
+typedef struct simple_group {
+    char file_group[50];
+}simple_group_struct;
 typedef struct group{
     char group_name[50];
     char owner[50];

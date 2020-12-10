@@ -97,6 +97,14 @@ void writeToGroupFile(char group_name[50], char owner[50], int number_of_files, 
 }
 
 
+void readUserFile(){
+
+}
+
+void readFileFile(){
+	
+}
+
 
 
 

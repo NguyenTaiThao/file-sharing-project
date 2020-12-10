@@ -30,7 +30,6 @@ node * deleteAtPosition(singleList * list, int n);
 node * deleteSingleList(singleList * list);
 
 
-
 /*
 Tất cả node
 */

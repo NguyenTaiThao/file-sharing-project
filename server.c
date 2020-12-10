@@ -80,8 +80,13 @@ void insertToList(singleList *list){
 
 }
 
+void readUserFile(){
 
+}
 
+void readFileFile(){
+	
+}
 
 
 

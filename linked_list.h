@@ -29,16 +29,13 @@ node * deleteEnd(singleList * list);
 node * deleteAtPosition(singleList * list, int n);
 node * deleteSingleList(singleList * list);
 
-/*
-In ra màn hình tất cả list
-*/
-void   printSingleList(singleList  list);
+
 
 /*
 Tất cả node
 */
 int    printUser(singleList list);
-
+int    printGroup(singleList list);
 
 /*
 *
@@ -97,6 +94,18 @@ node * insertBegin(singleList * list, void *e)
       (*list).root = newNode;
     }
   return (*list).root;
+}
+
+int totalSingleList(singleList list)
+{
+  int i=0;
+  list.cur = list.root;
+	while(list.cur != NULL)
+      {
+        i++;
+        list.cur = list.cur->next;
+      }
+    return i;
 }
 
 // Thêm vào vị trí
@@ -191,3 +200,15 @@ int printUser(singleList list)
     return i;
 }
 
+int printGroup(singleList list)
+{
+  int i=0;
+  list.cur = list.root;
+	while(list.cur != NULL)
+      {
+        i++;
+        printf("%s\n", ((group_struct*)list.cur->element)->group_name);
+        list.cur = list.cur->next;
+      }
+    return i;
+}

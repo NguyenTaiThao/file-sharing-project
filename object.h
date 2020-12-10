@@ -19,6 +19,7 @@ typedef struct user
 	char password[50];
     singleList joined_groups;
 	int status;
+    int count_group;
 }user_struct;
 
 typedef struct simple_user
@@ -39,7 +40,7 @@ typedef struct simple_file {
 }simple_file_struct;
 
 typedef struct simple_group {
-    char file_group[50];
+    char group_name[50];
 }simple_group_struct;
 typedef struct group{
     char group_name[50];

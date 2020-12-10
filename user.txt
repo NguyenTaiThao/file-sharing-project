@@ -14,5 +14,3 @@ trung1 123 1
 group5
 trung2 123 1
 
-dung1 123 1
-dung2 123 1

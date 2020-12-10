@@ -240,3 +240,22 @@ int printFiles(singleList files){
     files.cur = files.cur->next;
   }
 }
+
+int printUsers(singleList users){
+  singleList groups;
+  user_struct* user = NULL;
+  users.cur = users.root;
+  while(users.cur != NULL){
+    user = (user_struct*)(users.cur->element);
+    printf("%s %s %d\n", user->user_name, user->password, user->status);
+    printf("group: \n");
+    groups = user->joined_groups;
+    groups.cur = groups.root;
+    while(groups.cur != NULL){
+      printf("-%s\n", (char*)(groups.cur->element));
+      groups.cur = groups.cur->next;
+    }
+
+    users.cur = users.cur->next;
+  }
+}

@@ -97,19 +97,37 @@ void writeToGroupFile(char group_name[50], char owner[50], int number_of_files, 
 }
 
 
-void readUserFile(){
-	char str[100];
+void readUserFile(singleList* users){
+	char username[50], password[50], group_name[50];
+	int status, count_group;
 	FILE * f = fopen("user.txt","r");
+
 	if(f == NULL)
 	{
 		perror("Error while opening the file.\n");
 		exit(EXIT_FAILURE);
 	}
-	while (fgets(str, sizeof(str), f) != NULL) {
-        char *name = strtok(str, " ");
-        char *pass = strtok(NULL, " ");
-        int status = atoi(strtok(NULL, " "));
-    }
+
+	while (fscanf(f, "%s %s %d\n", username, password, &status) > 0) {
+		singleList groups;
+		createSingleList(&groups);
+
+		if(fscanf(f, "%d\n", &count_group) > 0){
+			for(int i = 0; i < count_group; i++){
+				fscanf(f, "%s\n", group_name);
+				insertEnd(&groups, strdup(group_name));
+			}
+		}
+
+		user_struct *user = (user_struct*)malloc(sizeof(user_struct));
+		strcpy(user->user_name, username);
+		strcpy(user->password, password);
+		user->status = status;
+		user->joined_groups = groups;
+		user->count_group = count_group;
+
+		insertEnd(users, user);
+	}
     fclose(f);
 
 }
@@ -206,13 +224,15 @@ int main(int argc, char *argv[])
 	//status = 2 => da dang nhap
 	int signed_in = 0;
 	int valid_username = 0;
-	singleList list;
-	singleList files;
+	singleList list, files, users;
+
 	createSingleList(&list);
-	group_struct group_element; 
+	createSingleList(&files);
+	createSingleList(&users);
+	
 	readGroupFile(&list);
-	printGroup(list);
 	readFileFile(&files);
+	readUserFile(&users);
 	// while(1){
     //     x = read( new_socket , buffer1, 100);
     //     printf("%s\n", buffer1);

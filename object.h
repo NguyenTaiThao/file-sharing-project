@@ -15,15 +15,15 @@ typedef struct singleList{
 
 typedef struct user
 {
-	char user_name[20];
-	char password[20];
+	char user_name[50];
+	char password[50];
     singleList joined_groups;
 	int status;
 }user_struct;
 
 typedef struct simple_user
 {
-	char user_name[20];
+	char user_name[50];
 }simple_user_struct;
 
 typedef struct file {

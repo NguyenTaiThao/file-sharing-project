@@ -29,7 +29,7 @@ typedef struct simple_user
 typedef struct file {
     char name[50];
     char owner[50];
-    char create_at[50];
+    char uploaded_at[50];
     int downloaded_times;
     int status;
 }file_struct;

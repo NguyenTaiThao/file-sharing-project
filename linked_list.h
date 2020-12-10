@@ -212,3 +212,13 @@ int printGroup(singleList list)
       }
     return i;
 }
+
+int printFiles(singleList files){
+  file_struct* file = NULL;
+  files.cur = files.root;
+  while(files.cur != NULL){
+    file = (file_struct*)(files.cur->element);
+    printf("%s %s %s %d\n", file->name, file->owner, file->uploaded_at, file->downloaded_times);
+    files.cur = files.cur->next;
+  }
+}

@@ -84,8 +84,24 @@ void readUserFile(){
 
 }
 
-void readFileFile(){
-	
+void readFileFile(singleList *files){
+	FILE *f;
+	char name[50], owner[50], uploaded_at[50];
+	int download_times;
+
+	f = fopen("./file.txt", "r");
+	if(f == NULL){
+		fprintf(stderr, "File missing: can not find \"file.txt\".\n");
+		exit(-1);
+	}
+
+	while(fscanf(f, "%s %s %s %d\n", name, owner, uploaded_at, &download_times)>0){
+		file_struct *file = (file_struct*)malloc(sizeof(file_struct));
+		strcpy(file->name, name);
+		strcpy(file->owner,owner);
+		strcpy(file->uploaded_at, uploaded_at);
+		insertEnd(files, file);
+	}
 }
 
 
@@ -161,11 +177,13 @@ int main(int argc, char *argv[])
 	int signed_in = 0;
 	int valid_username = 0;
 	singleList list;
+	singleList files;
 	createSingleList(&list);
 	group_struct group_element; 
 	insertToList(&list);
 	printf("\n123\n");
 	printGroup(list);
+	readFileFile(&files);
 	// while(1){
     //     x = read( new_socket , buffer1, 100);
     //     printf("%s\n", buffer1);

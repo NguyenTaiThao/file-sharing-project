@@ -200,6 +200,19 @@ int printUser(singleList list)
     return i;
 }
 
+int printFile(singleList list)
+{
+  int i=0;
+  list.cur = list.root;
+	while(list.cur != NULL)
+      {
+        i++;
+        printf("%s\n", ((file_struct*)list.cur->element)->name);
+        list.cur = list.cur->next;
+      }
+    return i;
+}
+
 int printGroup(singleList list)
 {
   int i=0;
@@ -207,7 +220,13 @@ int printGroup(singleList list)
 	while(list.cur != NULL)
       {
         i++;
-        printf("%s\n", ((group_struct*)list.cur->element)->group_name);
+        printf("Name: %s\n", ((group_struct*)list.cur->element)->group_name);
+        printf("Owner: %s\n", ((group_struct*)list.cur->element)->owner);
+        printf("members = %d\n", ((group_struct*)list.cur->element)->number_of_members);
+        printUser(((group_struct*)list.cur->element)->members);
+        printf("files = %d\n", ((group_struct*)list.cur->element)->number_of_files);
+        printFile(((group_struct*)list.cur->element)->files);
+        printf("=================================================\n");
         list.cur = list.cur->next;
       }
     return i;

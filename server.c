@@ -9,12 +9,11 @@
 #include <arpa/inet.h> 
 #include <netdb.h>
 #include <errno.h>
+#include "request_code.h"
 #include "linked_list.h"
 
 
-#define NOT_LOGIN_STATUS 0
-#define VALID_USERNAME_STATUS 1
-#define LOGIN_STATUS 2
+int STATUS;
 
 
 void readGroupFile(singleList *list){
@@ -221,7 +220,7 @@ int main(int argc, char *argv[])
 	//============================Start to communicate with client=====================================
 	//=================================================================================================
 	int x, checked;
-	char buffer1[100];
+	char buff[100];
 	char buffer2[100];
 	char username[20];
 	char password[20] = "";
@@ -262,9 +261,63 @@ int main(int argc, char *argv[])
 	// readFileFile(&files);
 	// readUserFile(&users);
 	while(1){
-        //x = read( new_socket , buffer1, 100);
-        printf("%s\n", buffer1);
-        
+        //x = read( new_socket , buffer, 100);
+		int REQUEST = atoi(buff);
+		switch (REQUEST)
+		{
+		case REGISTER_REQUEST:
+			printf("xu ly dang ky");
+			/* code */
+			break;
+		case LOGIN_REQUEST:
+			// nhan username va password
+			//x = read( new_socket , buffer, 100);
+			int REQUEST = atoi(buff);
+			switch (REQUEST)
+			{
+			case CREATE_GROUP_REQUEST: //request code: 11
+				/* code */
+				break;
+			case JOIN_GROUP_REQUEST: //request code: 12
+				/* code */
+				break;
+			case ACCESS_GROUP_REQUEST: //request code: 13
+				//x = read( new_socket , buffer, 100);
+				int REQUEST = atoi(buff);
+				switch (REQUEST)
+				{
+				case UPLOAD_REQUEST: //request code: 131
+				/* code */
+				break;
+				case DOWNLOAD_REQUEST: //request code: 132
+				/* code */
+				break;
+				case DELETE_REQUEST: //request code: 133
+				/* code */
+				break;
+				case VIEW_FILES_REQUEST: //request code: 134
+				/* code */
+				break;
+				case BACK_REQUEST: //request code: 135
+				/* code */
+				break;
+				
+				default:
+					break;
+				}
+				/* code */
+				break;
+			case LOGOUT_REQUEST: //request code: 14
+				/* code */
+				break;
+
+			default:
+				break;
+			}
+			break;
+		default:
+			break;
+		}
         //send(new_socket , "123", 4 , 0 );
         
     }

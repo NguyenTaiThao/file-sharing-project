@@ -6,41 +6,90 @@
 #include <string.h>
 #include<stdlib.h> 
 
-int check_new_password(char new_password[100]){
-	for(int i = 0; i < strlen(new_password); i++){
-		if((new_password[i] < '0' || new_password[i] > '9') && 
-		(new_password[i] < 'A' || new_password[i] > 'Z') && 
-		(new_password[i] < 'a' || new_password[i] > 'z'))
-		{ 
-			return 0;
-		}
-		
-	}
-	return 1;
-}
 int menu1()
 {
-    int choice;
-    printf("===================UPLOAD FILE SHAREING===================\n");
+    int choice, catch;
+	char err[10];
+	printf("\n\n");
+    printf("====================UPLOAD FILE SHARING===================\n");
     printf("1. Dang ky\n");
     printf("2. Dang nhap\n");
-    printf("Nhap lua chon cua ban: ");
-    scanf("%d",&choice);
-    printf("\n");
-    return choice;
+	printf("==========================================================\n");
+    printf("=> Nhap lua chon cua ban: ");
+    catch = scanf("%d",&choice);
+	
+	printf("\n\n");
+	
+	if(catch > 0) return choice;
+	else {
+		fgets(err, 10, stdin);
+		err[strlen(err)-1] = '\0';
+		printf("\"%s\" is not allowed!\n",err);
+		return -1;
+	}
 }
+
 int menu2()
 {
-    int choice;
+    int choice, catch;
+	char err[10];
+	printf("\n\n");
+	printf("========================== GROUP ========================\n");
     printf("1. Tao nhom\n");
     printf("2. Vao nhom\n");
     printf("3. Truy cap nhom da vao\n");
     printf("4. Dang xuat\n");
-    printf("5. Quay tro lai menu chinh\n");
-    printf("Nhap lua chon cua ban: ");
-    scanf("%d",&choice);
-    printf("\n");
-    return choice;
+	printf("==========================================================\n");
+    printf("=> Nhap lua chon cua ban: ");
+    catch = scanf("%d",&choice);
+
+	printf("\n\n");
+
+    if(catch > 0) return choice;
+	else {
+		fgets(err, 10, stdin);
+		err[strlen(err)-1] = '\0';
+		printf("\"%s\" is not allowed!\n",err);
+		return -1;
+	}
+}
+
+void navigation(){
+	int z1,z2;
+
+	z1 = menu1();
+	switch (z1)
+	{
+		case 1:
+			printf("Dang ki thanh cong\n");
+			break;
+		case 2:
+			do {
+				z2 = menu2();
+				switch (z2)
+				{
+				case 1:
+					printf("Day la chuc nang tao nhom\n");
+					break;
+				case 2:
+					printf("Day la chuc nang vao nhom\n");
+					break;
+				case 3:
+					printf("Day la chuc nang truy cap nhom da vao\n");
+					break;
+				case 4:
+					printf("Day la chuc nang dang xuat\n");
+					z1=-1;
+					break;
+				default:
+					z2 = 1;
+					break;
+				}
+			}while(z2 >= 1 && z2 < 4);
+			break;
+		default:
+			break;
+	}
 }
 
 int main(int argc, char *argv[]) 
@@ -74,72 +123,29 @@ int main(int argc, char *argv[])
 		return -1; 
 	} 
 
-	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) 
-	{ 
-		printf("\nConnection Failed \n"); 
-		return -1; 
-	} 
+	// if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) 
+	// { 
+	// 	printf("\nConnection Failed \n"); 
+	// 	return -1; 
+	// } 
 
 
 	// ============================Start to communicate with Server======================
 	// ==================================================================================
 	do {
-		int g= 0;
-		int signed_in = 0;
 		char buffer[100];
 		char message[100];
-		char username[100];
-		char password[100];
-		char new_password[100];
-		printf("Username: ");
-		g = scanf("%[^\n]", message); 
-		if (g == 0) break;
-		getchar();
-		strcpy(username, message);
 			
-		int z1,z2;
-		do{
-			z1 = menu1();
-			switch (z1)
-			{
-			case 1:
-
-				break;
-			case 2:
-				do {
-					z2 = menu2(2);
-					switch (z2)
-					{
-					case 1:
-						printf("Day la chuc nang tao nhom\n");
-						break;
-					case 2:
-						printf("Day la chuc nang vao nhom\n");
-						break;
-					case 3:
-						printf("Day la chuc nang truy cap nhom da vao\n");
-						break;
-					case 4:
-						printf("Day la chuc nang dang xuat\n");
-						break;
-					
-					default:
-						break;
-					}
-				}while(z2>=1&&z2<=4);
-				break;
-			default:
-				break;
-			}
-		} while(z1>=1&&z1<=6);
-    
-		send(sock , "anhyeuem" , 9, 0 ); 
+		
+		navigation();
+		// send(sock , "anhyeuem" , 9, 0 ); 
 		
 		// waiting for response 
-		read(sock, buffer,100); 
-        printf("%s\n", buffer);
+		// read(sock, buffer,100); 
+        // printf("%s\n", buffer);
 		
 	}while(1);	
+	
 	// close the descriptor 
 	close(sock); 
 	

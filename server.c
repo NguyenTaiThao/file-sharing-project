@@ -13,6 +13,11 @@
 #include "linked_list.h"
 
 
+#define NOT_LOGIN_STATUS 0
+#define VALID_USERNAME_STATUS 1
+#define LOGIN_STATUS 2
+
+
 void readGroupFile(singleList *list){
 	
 	// clear list
@@ -97,13 +102,62 @@ void writeToGroupFile(char group_name[50], char owner[50], int number_of_files, 
 }
 
 
-void readUserFile(){
+void readUserFile(singleList* users){
+	char username[50], password[50], group_name[50];
+	int status, count_group;
+	FILE * f = fopen("user.txt","r");
+
+	if(f == NULL)
+	{
+		perror("Error while opening the file.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	while (fscanf(f, "%s %s %d\n", username, password, &status) > 0) {
+		singleList groups;
+		createSingleList(&groups);
+
+		if(fscanf(f, "%d\n", &count_group) > 0){
+			for(int i = 0; i < count_group; i++){
+				fscanf(f, "%s\n", group_name);
+				insertEnd(&groups, strdup(group_name));
+			}
+		}
+
+		user_struct *user = (user_struct*)malloc(sizeof(user_struct));
+		strcpy(user->user_name, username);
+		strcpy(user->password, password);
+		user->status = status;
+		user->joined_groups = groups;
+		user->count_group = count_group;
+
+		insertEnd(users, user);
+	}
+    fclose(f);
 
 }
 
-void readFileFile(){
-	
+void readFileFile(singleList *files){
+	FILE *f;
+	char name[50], owner[50], uploaded_at[50];
+	int download_times;
+
+	f = fopen("./file.txt", "r");
+	if(f == NULL){
+		fprintf(stderr, "File missing: can not find \"file.txt\".\n");
+		exit(-1);
+	}
+
+	while(fscanf(f, "%s %s %s %d\n", name, owner, uploaded_at, &download_times)>0){
+		file_struct *file = (file_struct*)malloc(sizeof(file_struct));
+		strcpy(file->name, name);
+		strcpy(file->owner,owner);
+		strcpy(file->uploaded_at, uploaded_at);
+		insertEnd(files, file);
+	}
 }
+
+
 
 
 
@@ -182,23 +236,34 @@ int main(int argc, char *argv[])
 	group_struct group_element; 
 	readGroupFile(&group_list);
 	printGroup(group_list);
-	singleList members;
-	createSingleList(&members);
-	simple_user_struct *user1 = (simple_user_struct*) malloc(sizeof(simple_user_struct));
-	strcpy(user1->user_name, "trung1");
-	insertEnd(&members, user1);
-	singleList files;
-	createSingleList(&files);
-	simple_file_struct *file1 = (simple_file_struct*) malloc(sizeof(simple_file_struct));
-	strcpy(file1->file_name, "file1.exe");
-	insertEnd(&files, file1);
-	writeToGroupFile("group 5", "trungasd", 1, 1, members, files);
-	// while(1){
-    //     x = read( new_socket , buffer1, 100);
-    //     printf("%s\n", buffer1);
+	// singleList members;
+	// createSingleList(&members);
+	// simple_user_struct *user1 = (simple_user_struct*) malloc(sizeof(simple_user_struct));
+	// strcpy(user1->user_name, "trung1");
+	// insertEnd(&members, user1);
+	// singleList files;
+	// createSingleList(&files);
+	// simple_file_struct *file1 = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+	// strcpy(file1->file_name, "file1.exe");
+	// insertEnd(&files, file1);
+	// writeToGroupFile("group 5", "trungasd", 1, 1, members, files);
+
+
+	// singleList list, files, users;
+
+	// createSingleList(&list);
+	// createSingleList(&files);
+	// createSingleList(&users);
+	
+	// readGroupFile(&list);
+	// readFileFile(&files);
+	// readUserFile(&users);
+	while(1){
+        //x = read( new_socket , buffer1, 100);
+        printf("%s\n", buffer1);
         
-    //     send(new_socket , "123", 4 , 0 );
+        //send(new_socket , "123", 4 , 0 );
         
-    // }
+    }
 	return 0; 
 } 

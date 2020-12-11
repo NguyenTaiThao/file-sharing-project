@@ -177,11 +177,22 @@ int main(int argc, char *argv[])
 	//status = 2 => da dang nhap
 	int signed_in = 0;
 	int valid_username = 0;
-	singleList list;
-	createSingleList(&list);
+	singleList group_list;
+	createSingleList(&group_list);
 	group_struct group_element; 
-	readGroupFile(&list);
-	printGroup(list);
+	readGroupFile(&group_list);
+	printGroup(group_list);
+	singleList members;
+	createSingleList(&members);
+	simple_user_struct *user1 = (simple_user_struct*) malloc(sizeof(simple_user_struct));
+	strcpy(user1->user_name, "trung1");
+	insertEnd(&members, user1);
+	singleList files;
+	createSingleList(&files);
+	simple_file_struct *file1 = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+	strcpy(file1->file_name, "file1.exe");
+	insertEnd(&files, file1);
+	writeToGroupFile("group 5", "trungasd", 1, 1, members, files);
 	// while(1){
     //     x = read( new_socket , buffer1, 100);
     //     printf("%s\n", buffer1);

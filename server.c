@@ -151,7 +151,11 @@ void readFileFile(singleList *files){
 	}
 }
 
-
+int checkExistence(int type, singleList list, char name[50]){
+	// type = 1 check user
+	// type = 2 check group
+	// type = 3 check file
+}
 
 
 

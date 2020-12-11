@@ -4,7 +4,9 @@
 #include <arpa/inet.h> 
 #include <unistd.h> 
 #include <string.h>
-#include<stdlib.h> 
+#include <stdlib.h> 
+#include "./request_code.h"
+
 
 int menu1()
 {
@@ -54,31 +56,41 @@ int menu2()
 	}
 }
 
-void navigation(){
+void navigation(int sock){
 	int z1,z2;
+	char code[10];
 
 	z1 = menu1();
+	
 	switch (z1)
 	{
 		case 1:
+			sendCode(sock, REGISTER_REQUEST);
 			printf("Dang ki thanh cong\n");
 			break;
 		case 2:
 			do {
+				sendCode(sock, LOGIN_REQUEST);
+				printf("Dang ki thanh cong\n");
+
 				z2 = menu2();
 				switch (z2)
 				{
 				case 1:
 					printf("Day la chuc nang tao nhom\n");
+					sendCode(sock, CREATE_GROUP_REQUEST);
 					break;
 				case 2:
 					printf("Day la chuc nang vao nhom\n");
+					sendCode(sock, JOIN_GROUP_REQUEST);
 					break;
 				case 3:
 					printf("Day la chuc nang truy cap nhom da vao\n");
+					sendCode(sock, ACCESS_GROUP_REQUEST);
 					break;
 				case 4:
 					printf("Day la chuc nang dang xuat\n");
+					sendCode(sock, LOGOUT_REQUEST);
 					z1=-1;
 					break;
 				default:
@@ -90,6 +102,12 @@ void navigation(){
 		default:
 			break;
 	}
+}
+
+void sendCode(int sock, int code){
+	char codeStr[10];
+	sprintf(codeStr, "%d", code);
+	// send(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
 }
 
 int main(int argc, char *argv[]) 
@@ -137,7 +155,7 @@ int main(int argc, char *argv[])
 		char message[100];
 			
 		
-		navigation();
+		navigation(sock);
 		// send(sock , "anhyeuem" , 9, 0 ); 
 		
 		// waiting for response 

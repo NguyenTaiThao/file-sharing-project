@@ -1,3 +1,4 @@
+//================= REQUEST CODE ===================//
 #define REGISTER_REQUEST 0
 #define LOGIN_REQUEST 1
 
@@ -11,3 +12,15 @@
 #define DELETE_REQUEST 133
 #define VIEW_FILES_REQUEST 134
 #define BACK_REQUEST 135
+//==================================================//
+
+//====================== ALERT =====================//
+#define REGISTER_SUCCESS 800
+#define LOGIN_SUCCESS 801
+#define ACCOUNT_BLOCKED 803
+//==================================================//
+
+#define INCORRECT_PASSWORD 900
+#define EXISTENCE_USERNAME 901
+#define EXISTENCE_GROUP_NAME 902
+#define EXISTENCE_FILE_NAME 903

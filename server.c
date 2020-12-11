@@ -4,7 +4,6 @@
 #include <stdlib.h> 
 #include <netinet/in.h> 
 #include <string.h> 
-#include <stdlib.h> 
 #include <ctype.h>
 #include <sys/types.h> 
 #include <arpa/inet.h> 
@@ -157,7 +156,11 @@ void readFileFile(singleList *files){
 	}
 }
 
-
+int checkExistence(int type, singleList list, char name[50]){
+	// type = 1 check user
+	// type = 2 check group
+	// type = 3 check file
+}
 
 
 

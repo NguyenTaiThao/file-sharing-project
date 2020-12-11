@@ -18,6 +18,30 @@ int check_new_password(char new_password[100]){
 	}
 	return 1;
 }
+int menu1()
+{
+    int choice;
+    printf("===================UPLOAD FILE SHAREING===================\n");
+    printf("1. Dang ky\n");
+    printf("2. Dang nhap\n");
+    printf("Nhap lua chon cua ban: ");
+    scanf("%d",&choice);
+    printf("\n");
+    return choice;
+}
+int menu2()
+{
+    int choice;
+    printf("1. Tao nhom\n");
+    printf("2. Vao nhom\n");
+    printf("3. Truy cap nhom da vao\n");
+    printf("4. Dang xuat\n");
+    printf("5. Quay tro lai menu chinh\n");
+    printf("Nhap lua chon cua ban: ");
+    scanf("%d",&choice);
+    printf("\n");
+    return choice;
+}
 
 int main(int argc, char *argv[]) 
 {
@@ -72,8 +96,43 @@ int main(int argc, char *argv[])
 		if (g == 0) break;
 		getchar();
 		strcpy(username, message);
+			
+		int z1,z2;
+		do{
+			z1 = menu1();
+			switch (z1)
+			{
+			case 1:
 
-
+				break;
+			case 2:
+				do {
+					z2 = menu2(2);
+					switch (z2)
+					{
+					case 1:
+						printf("Day la chuc nang tao nhom\n");
+						break;
+					case 2:
+						printf("Day la chuc nang vao nhom\n");
+						break;
+					case 3:
+						printf("Day la chuc nang truy cap nhom da vao\n");
+						break;
+					case 4:
+						printf("Day la chuc nang dang xuat\n");
+						break;
+					
+					default:
+						break;
+					}
+				}while(z2>=1&&z2<=4);
+				break;
+			default:
+				break;
+			}
+		} while(z1>=1&&z1<=6);
+    
 		send(sock , "anhyeuem" , 9, 0 ); 
 		
 		// waiting for response 

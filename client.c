@@ -5,11 +5,14 @@
 #include <unistd.h> 
 #include <string.h>
 #include <stdlib.h> 
+#include <pthread.h>
 #include "./communication_code.h"
 
-
+#define BUFF_SIZE 100
 
 void sendCode(int sock, int code);
+
+void * receiveResponse(void *my_sock);
 
 int menu1()
 {
@@ -167,6 +170,8 @@ void sendCode(int sock, int code){
 
 int main(int argc, char *argv[]) 
 {
+	pthread_t thread;
+
 	if(argc!=3){
 		printf("Please input IP address and port number\n");
 		return 0;
@@ -203,26 +208,34 @@ int main(int argc, char *argv[])
 	} 
 
 
+	if (pthread_create(&thread, (void *) NULL, receiveResponse, (void *) &sock ) < 0) {
+        printf("ERROR: creating thread\n");
+        exit(1);
+    }
+
+
 	// ============================Start to communicate with Server======================
 	// ==================================================================================
 	do {
-		char buffer[100];
-		char message[100];
-			
-		
 		navigation(sock);
-		// send(sock , "anhyeuem" , 9, 0 ); 
-		
-		//waiting for response 
-		// read(sock, buffer,100); 
-        printf("%s\n", buffer);
-		
 	}while(1);	
 	
 	// close the descriptor 
 	close(sock); 
-	
-					
-	
+		
 	return 0; 
 } 
+
+void * receiveResponse(void *my_sock){
+	while(1) {
+        int sockfd = *((int *)my_sock);
+		char data[1024];
+        int n;
+        if((n = recv(sockfd, data, BUFF_SIZE, 0)) == 0) {
+            perror("The server terminated prematurely");
+            exit(4);
+        }
+		data[n] = '\0';
+		printf("%s\n",data);
+	}
+}

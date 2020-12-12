@@ -204,6 +204,8 @@ void navigation(int sock){
 				case 3:
 					printf("Day la chuc nang truy cap nhom da vao\n");
 					sendCode(sock, ACCESS_GROUP_REQUEST);
+					read(sock, buffer, 1000); 
+					printf("%s\n", buffer);
 					z3 = 0;
 					while(z3 != 5){
 						z3 = menu3();

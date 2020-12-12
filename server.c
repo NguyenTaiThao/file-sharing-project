@@ -264,7 +264,7 @@ int addGroupToJoinedGroups(singleList users, char username[50], char group_name[
 	return 0;
 }
 
-singleList UnJoinedGroups(singleList groups, singleList users, char username[50]){
+singleList unJoinedGroups(singleList groups, singleList users, char username[50]){
 	singleList joined_groups;
 	createSingleList(&joined_groups);
 	singleList un_joined_groups;
@@ -355,6 +355,16 @@ void sendCode(int sock, int code){
 	char codeStr[10];
 	sprintf(codeStr, "%d", code);
 	send(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
+}
+
+singleList joinedGroups(singleList users, char username[50]){
+	users.cur = users.root;
+	while(users.cur != NULL)
+	{
+		if(strcmp(((user_struct*)users.cur->element)->user_name, username) == 0){
+			return ((user_struct*)users.cur->element)->joined_groups;
+		}
+	}
 }
 
 int main(int argc, char *argv[]) 
@@ -468,7 +478,7 @@ int main(int argc, char *argv[])
 					printf("JOIN_GROUP_REQUEST\n");
 					singleList un_joined_group;
 					createSingleList(&un_joined_group);
-					un_joined_group = UnJoinedGroups(groups, users, "trung2");
+					un_joined_group = unJoinedGroups(groups, users, "trung2");
 					char str[200];
 					convertSimpleGroupsToString(un_joined_group, str);
 					send(new_socket , str, strlen(str) + 1, 0 );
@@ -484,6 +494,12 @@ int main(int argc, char *argv[])
 					break;
 				case ACCESS_GROUP_REQUEST: //request code: 13
 					printf("ACCESS_GROUP_REQUEST\n");
+					singleList joined_group;
+					createSingleList(&joined_group);
+					joined_group = joinedGroups(users, "trung2");
+					char str[200];
+					convertSimpleGroupsToString(joined_group, str);
+					send(new_socket , str, strlen(str) + 1, 0 );
 					while(REQUEST != BACK_REQUEST){
 						x = read( new_socket , buff, 100);
 						REQUEST = atoi(buff);

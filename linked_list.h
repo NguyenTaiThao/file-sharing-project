@@ -191,12 +191,12 @@ int printUser(singleList list)
   int i=0;
   list.cur = list.root;
 	while(list.cur != NULL)
-      {
-        i++;
-        printf("%s\n", ((user_struct*)list.cur->element)->user_name);
-        list.cur = list.cur->next;
-      }
-    return i;
+  {
+    i++;
+    printf("%s\n", ((user_struct*)list.cur->element)->user_name);
+    list.cur = list.cur->next;
+  }
+  return i;
 }
 
 int printFile(singleList list)

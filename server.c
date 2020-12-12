@@ -13,7 +13,7 @@
 #include "linked_list.h"
 
 
-int STATUS;
+int REQUEST;
 
 
 void readGroupFile(singleList *list){
@@ -161,7 +161,41 @@ int checkExistence(int type, singleList list, char name[50]){
 	// type = 3 check file
 }
 
+int addMember(singleList groups, char group_name[50], char username[50]){
+	singleList members;
+	createSingleList(&members);
+  	groups.cur = groups.root;
+	while(groups.cur != NULL)
+	{
+		if(strcmp(((group_struct*)groups.cur->element)->group_name, group_name) == 0){
+			members = ((group_struct*)groups.cur->element)->members;
+			simple_user_struct *member_element = (simple_user_struct*) malloc(sizeof(simple_user_struct));
+			strcpy(member_element->user_name, username);
+			insertEnd(&members, member_element);
+			return 1;
+		}
+		groups.cur = groups.cur->next;
+	}
+	return 0;
+}
 
+int addGroupToJoinedGroups(singleList users, char username[50], char group_name[50]){
+	singleList joined_groups;
+	createSingleList(&joined_groups);
+	users.cur = users.root;
+	while(users.cur != NULL)
+	{
+		if(strcmp(((user_struct*)users.cur->element)->user_name, username) == 0){
+			joined_groups = ((user_struct*)users.cur->element)->joined_groups;
+			simple_group_struct *group_element = (simple_group_struct*) malloc(sizeof(simple_group_struct));
+			strcpy(group_element->group_name, group_name);
+			insertEnd(&joined_groups, group_element);
+			return 1;
+		}
+		users.cur = users.cur->next;
+	}
+	return 0;
+}
 
 
 
@@ -219,25 +253,13 @@ int main(int argc, char *argv[])
 
 	//============================Start to communicate with client=====================================
 	//=================================================================================================
-	int x, checked;
+	int x;
 	char buff[100];
-	char buffer2[100];
-	char username[20];
-	char password[20] = "";
-	char checked_str[10];
-	char only_string[20];
-	char only_number[20];
-	int status = 0;
-	//status = 0 => cho nhap username
-	//status = 1 => cho nhap password
-	//status = 2 => da dang nhap
-	int signed_in = 0;
-	int valid_username = 0;
-	singleList group_list;
-	createSingleList(&group_list);
-	group_struct group_element; 
-	readGroupFile(&group_list);
-	printGroup(group_list);
+	// singleList group_list;
+	// createSingleList(&group_list);
+	// group_struct group_element; 
+	// readGroupFile(&group_list);
+	// printGroup(group_list);
 	// singleList members;
 	// createSingleList(&members);
 	// simple_user_struct *user1 = (simple_user_struct*) malloc(sizeof(simple_user_struct));
@@ -251,75 +273,79 @@ int main(int argc, char *argv[])
 	// writeToGroupFile("group 5", "trungasd", 1, 1, members, files);
 
 
-	// singleList list, files, users;
+	singleList list, files, users;
 
-	// createSingleList(&list);
-	// createSingleList(&files);
-	// createSingleList(&users);
+	createSingleList(&list);
+	createSingleList(&files);
+	createSingleList(&users);
 	
-	// readGroupFile(&list);
-	// readFileFile(&files);
-	// readUserFile(&users);
-	while(1){
-        //x = read( new_socket , buffer, 100);
-		int REQUEST = atoi(buff);
-		switch (REQUEST)
-		{
-		case REGISTER_REQUEST:
-			printf("xu ly dang ky");
-			/* code */
-			break;
-		case LOGIN_REQUEST:
-			// nhan username va password
-			//x = read( new_socket , buffer, 100);
-			int REQUEST = atoi(buff);
-			switch (REQUEST)
-			{
-			case CREATE_GROUP_REQUEST: //request code: 11
-				/* code */
-				break;
-			case JOIN_GROUP_REQUEST: //request code: 12
-				/* code */
-				break;
-			case ACCESS_GROUP_REQUEST: //request code: 13
-				//x = read( new_socket , buffer, 100);
-				int REQUEST = atoi(buff);
-				switch (REQUEST)
-				{
-				case UPLOAD_REQUEST: //request code: 131
-				/* code */
-				break;
-				case DOWNLOAD_REQUEST: //request code: 132
-				/* code */
-				break;
-				case DELETE_REQUEST: //request code: 133
-				/* code */
-				break;
-				case VIEW_FILES_REQUEST: //request code: 134
-				/* code */
-				break;
-				case BACK_REQUEST: //request code: 135
-				/* code */
-				break;
-				
-				default:
-					break;
-				}
-				/* code */
-				break;
-			case LOGOUT_REQUEST: //request code: 14
-				/* code */
-				break;
+	readGroupFile(&list);
+	readFileFile(&files);
+	readUserFile(&users);
 
-			default:
-				break;
-			}
-			break;
-		default:
-			break;
-		}
-        //send(new_socket , "123", 4 , 0 );
+	printf("\n\nsuccess? %d\n", addGroupToJoinedGroups(users, "thao2", "new_group"));
+	printUsers(users);
+
+	// while(1){
+    //     //x = read( new_socket , buffer, 100);
+	// 	REQUEST = atoi(buff);
+	// 	switch (REQUEST)
+	// 	{
+	// 	case REGISTER_REQUEST:
+	// 		printf("xu ly dang ky");
+	// 		/* code */
+	// 		break;
+	// 	case LOGIN_REQUEST:
+	// 		// nhan username va password
+	// 		//x = read( new_socket , buffer, 100);
+	// 		REQUEST = atoi(buff);
+	// 		switch (REQUEST)
+	// 		{
+	// 		case CREATE_GROUP_REQUEST: //request code: 11
+	// 			/* code */
+	// 			break;
+	// 		case JOIN_GROUP_REQUEST: //request code: 12
+	// 			/* code */
+	// 			break;
+	// 		case ACCESS_GROUP_REQUEST: //request code: 13
+	// 			//x = read( new_socket , buffer, 100);
+	// 			REQUEST = atoi(buff);
+	// 			switch (REQUEST)
+	// 			{
+	// 			case UPLOAD_REQUEST: //request code: 131
+	// 			/* code */
+	// 			break;
+	// 			case DOWNLOAD_REQUEST: //request code: 132
+	// 			/* code */
+	// 			break;
+	// 			case DELETE_REQUEST: //request code: 133
+	// 			/* code */
+	// 			break;
+	// 			case VIEW_FILES_REQUEST: //request code: 134
+	// 			/* code */
+	// 			break;
+	// 			case BACK_REQUEST: //request code: 135
+	// 			/* code */
+	// 			break;
+				
+	// 			default:
+	// 				break;
+	// 			}
+	// 			/* code */
+	// 			break;
+	// 		case LOGOUT_REQUEST: //request code: 14
+	// 			/* code */
+	// 			break;
+
+	// 		default:
+	// 			break;
+	// 		}
+	// 		break;
+	// 	default:
+	// 		break;
+	// 	}
+    //     //send(new_socket , "123", 4 , 0 );
         
-    }
+    // }
 	return 0; 
 } 

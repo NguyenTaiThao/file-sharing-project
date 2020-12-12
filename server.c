@@ -320,6 +320,21 @@ void convertSimpleGroupsToString(singleList simple_group, char str[1000]){
   	}
 }
 
+void convertSimpleFilesToString(singleList simple_file, char str[1000]){
+	str[0] = '\0';
+	simple_file.cur = simple_file.root;
+	while(simple_file.cur != NULL)
+  	{
+		strcat(str, ((simple_file_struct*)simple_file.cur->element)->file_name);
+		if(simple_file.cur->next == NULL){
+			str[strlen(str)] = '\0';
+		}else{
+			strcat(str, "+");
+		}
+    	simple_file.cur = simple_file.cur->next;
+  	}
+}
+
 void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info[200]){
 	char temp_str[10];
 	group_info[0] = '\0';
@@ -401,6 +416,21 @@ singleList joinedGroups(singleList users, char username[50]){
 		users.cur = users.cur->next;
 	}
 	return joined_groups;
+}
+
+singleList getAllFilesOfGroup(singleList groups, char group_name[50]){
+	singleList files;
+	createSingleList(&files);
+	groups.cur = groups.root;
+	while (groups.cur != NULL)
+	{
+		if(strcmp( ((group_struct*)groups.cur->element)->group_name, group_name) == 0){
+			files = ((group_struct*)groups.cur->element)->files;
+			break;
+		}
+		groups.cur = groups.cur->next;
+	}
+	return files;
 }
 
 int main(int argc, char *argv[]) 
@@ -535,11 +565,11 @@ int main(int argc, char *argv[])
 					send(new_socket , str, strlen(str) + 1, 0 );
 					read( new_socket , buff, 100);
 					printf("nhom da chon: %s\n", buff);
+					char current_group[50];
+					strcpy(current_group, buff);
 					sendCode(new_socket, ACCESS_GROUP_SUCCESS);
-					read( new_socket , buff, 100);
-					REQUEST = atoi(buff);
 					while(REQUEST != BACK_REQUEST){
-						x = read( new_socket , buff, 100);
+						read( new_socket , buff, 100);
 						REQUEST = atoi(buff);
 						switch (REQUEST)
 						{
@@ -557,7 +587,12 @@ int main(int argc, char *argv[])
 						break;
 						case VIEW_FILES_REQUEST: //request code: 134
 						/* code */
-						printf("VIEW_FILES_REQUEST\n");
+							printf("VIEW_FILES_REQUEST\n");
+							singleList all_files;
+							createSingleList(&all_files);
+							all_files = getAllFilesOfGroup(groups, current_group);
+							convertSimpleFilesToString(all_files, str);
+							send(new_socket , str, strlen(str) + 1, 0 );
 						break;
 						case BACK_REQUEST: //request code: 135
 						/* code */

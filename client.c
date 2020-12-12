@@ -10,20 +10,20 @@
 
 #define BUFF_SIZE 100
 
-int printAvailableGroups(char str[1000], char available_groups[20][50]){
+int printAvailableElements(char str[1000], char available_elements[20][50]){
 	char *token;
-	int number_of_available_groups = 0;
+	int number_of_available_elements = 0;
    	/* get the first token */
    	token = strtok(str, "+");
    
    	/* walk through other tokens */
    	while( token != NULL ) {
-    	printf( "%d. %s\n", number_of_available_groups + 1, token );
-		strcpy(available_groups[number_of_available_groups], token);
+    	printf( "%d. %s\n", number_of_available_elements + 1, token );
+		strcpy(available_elements[number_of_available_elements], token);
     	token = strtok(NULL, "+");
-		number_of_available_groups++;
+		number_of_available_elements++;
    	}
-	return number_of_available_groups;
+	return number_of_available_elements;
 }
 
 int menu1();
@@ -194,7 +194,7 @@ void navigation(int sock){
 					sendCode(sock, JOIN_GROUP_REQUEST);
 					read(sock, buffer, 1000); 
 					char available_group[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
-					int number_of_available_groups = printAvailableGroups(buffer, available_group);
+					int number_of_available_groups = printAvailableElements(buffer, available_group);
 					int selected_group;
 					printf("Which group do you want to join? (1-%d): ", number_of_available_groups);
 					scanf("%d", &selected_group);
@@ -209,14 +209,14 @@ void navigation(int sock){
 				case 3:
 					printf("========================== Available Group ==========================\n");
 					sendCode(sock, ACCESS_GROUP_REQUEST);
-					read(sock, buffer, 1000); 
-					number_of_available_groups = printAvailableGroups(buffer, available_group);
+					read(sock, buffer, 1000);
+					number_of_available_groups = printAvailableElements(buffer, available_group);
 					printf("Which group do you want to access? (1-%d): ", number_of_available_groups);
 					scanf("%d", &selected_group);
 					send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 );
 					read(sock, buffer, 1000);
 					if(atoi(buffer) == ACCESS_GROUP_SUCCESS){
-						printf("Access %s successfully\n", available_group[selected_group-1]);
+						printf(" => Access %s successfully\n", available_group[selected_group-1]);
 					}else{
 						printf("Something wrong!!!\n");
 					}
@@ -235,7 +235,11 @@ void navigation(int sock){
 								sendCode(sock, DELETE_REQUEST);
 								break;
 							case 4:
+								printf("========================== Available Group ==========================\n");
 								sendCode(sock, VIEW_FILES_REQUEST);
+								read(sock, buffer, 1000); 
+								char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+								int number_of_available_files = printAvailableElements(buffer, available_files);
 								break;
 							case 5:
 								sendCode(sock, BACK_REQUEST);

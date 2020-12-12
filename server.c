@@ -240,6 +240,7 @@ int addMember(singleList groups, char group_name[50], char username[50]){
 			simple_user_struct *member_element = (simple_user_struct*) malloc(sizeof(simple_user_struct));
 			strcpy(member_element->user_name, username);
 			insertEnd(&members, member_element);
+			((group_struct*)groups.cur->element)->number_of_members++;
 			return 1;
 		}
 		groups.cur = groups.cur->next;
@@ -248,16 +249,14 @@ int addMember(singleList groups, char group_name[50], char username[50]){
 }
 
 int addGroupToJoinedGroups(singleList users, char username[50], char group_name[50]){
-	singleList joined_groups;
-	createSingleList(&joined_groups);
 	users.cur = users.root;
 	while(users.cur != NULL)
 	{
 		if(strcmp(((user_struct*)users.cur->element)->user_name, username) == 0){
-			joined_groups = ((user_struct*)users.cur->element)->joined_groups;
 			simple_group_struct *group_element = (simple_group_struct*) malloc(sizeof(simple_group_struct));
 			strcpy(group_element->group_name, group_name);
-			insertEnd(&joined_groups, group_element);
+			insertEnd(&((user_struct*)users.cur->element)->joined_groups, group_element);
+			((user_struct*)users.cur->element)->count_group++;
 			return 1;
 		}
 		users.cur = users.cur->next;
@@ -350,6 +349,12 @@ void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info
 		}
 		groups.cur = groups.cur->next;
 	}
+}
+
+void sendCode(int sock, int code){
+	char codeStr[10];
+	sprintf(codeStr, "%d", code);
+	send(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
 }
 
 int main(int argc, char *argv[]) 
@@ -462,10 +467,19 @@ int main(int argc, char *argv[])
 					printf("JOIN_GROUP_REQUEST\n");
 					singleList un_joined_group;
 					createSingleList(&un_joined_group);
-					un_joined_group = UnJoinedGroups(groups, users, "thao2");
+					un_joined_group = UnJoinedGroups(groups, users, "trung2");
 					char str[200];
 					convertSimpleGroupsToString(un_joined_group, str);
 					send(new_socket , str, strlen(str) + 1, 0 );
+					x = read( new_socket , buff, 100);
+					printf("nhom da chon: %s\n", buff);
+					if(addMember(groups, buff, "trung2") + addGroupToJoinedGroups(users, "trung2", buff) == 2){
+						sendCode(new_socket , JOIN_GROUP_SUCCESS);
+					}else{
+						send(new_socket , "something wrong", 16, 0 );
+					}
+					printUsers(users);
+					printGroup(groups);
 					break;
 				case ACCESS_GROUP_REQUEST: //request code: 13
 					printf("ACCESS_GROUP_REQUEST\n");

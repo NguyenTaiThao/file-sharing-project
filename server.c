@@ -431,13 +431,13 @@ int main(int argc, char *argv[])
 
 
 
-	x = read( new_socket , buff, 100);
-	printf("%s\n", buff);
+	
+	// printf("%s\n", buff);
 	// send(new_socket , "123", 4 , 0 );
 	
 	
 	while(1){
-        
+        x = read( new_socket , buff, 100);
 		REQUEST = atoi(buff);
 		switch (REQUEST)
 		{
@@ -448,55 +448,59 @@ int main(int argc, char *argv[])
 		case LOGIN_REQUEST:
 			// nhan username va password
 			printf("LOGIN_REQUEST\n");
-			REQUEST = atoi(buff);
-			switch (REQUEST)
-			{
-			case CREATE_GROUP_REQUEST: //request code: 11
-				/* code */
-				printf("CREATE_GROUP_REQUEST\n");
-				break;
-			case JOIN_GROUP_REQUEST: //request code: 12
-				/* code */
-				printf("JOIN_GROUP_REQUEST\n");
-				break;
-			case ACCESS_GROUP_REQUEST: //request code: 13
+			while(REQUEST != LOGOUT_REQUEST){
 				x = read( new_socket , buff, 100);
-				printf("JOIN_GROUP_REQUEST\n");
 				REQUEST = atoi(buff);
 				switch (REQUEST)
 				{
-				case UPLOAD_REQUEST: //request code: 131
-				/* code */
-				printf("UPLOAD_REQUEST\n");
-				break;
-				case DOWNLOAD_REQUEST: //request code: 132
-				/* code */
-				printf("DOWNLOAD_REQUEST\n");
-				break;
-				case DELETE_REQUEST: //request code: 133
-				/* code */
-				printf("DELETE_REQUEST\n");
-				break;
-				case VIEW_FILES_REQUEST: //request code: 134
-				/* code */
-				printf("VIEW_FILES_REQUEST\n");
-				break;
-				case BACK_REQUEST: //request code: 135
-				/* code */
-				printf("BACK_REQUEST\n");
-				break;
-				
+				case CREATE_GROUP_REQUEST: //request code: 11
+					/* code */
+					printf("CREATE_GROUP_REQUEST\n");
+					break;
+				case JOIN_GROUP_REQUEST: //request code: 12
+					/* code */
+					printf("JOIN_GROUP_REQUEST\n");
+					break;
+				case ACCESS_GROUP_REQUEST: //request code: 13
+					x = read( new_socket , buff, 100);
+					printf("JOIN_GROUP_REQUEST\n");
+					REQUEST = atoi(buff);
+					switch (REQUEST)
+					{
+					case UPLOAD_REQUEST: //request code: 131
+					/* code */
+					printf("UPLOAD_REQUEST\n");
+					break;
+					case DOWNLOAD_REQUEST: //request code: 132
+					/* code */
+					printf("DOWNLOAD_REQUEST\n");
+					break;
+					case DELETE_REQUEST: //request code: 133
+					/* code */
+					printf("DELETE_REQUEST\n");
+					break;
+					case VIEW_FILES_REQUEST: //request code: 134
+					/* code */
+					printf("VIEW_FILES_REQUEST\n");
+					break;
+					case BACK_REQUEST: //request code: 135
+					/* code */
+					printf("BACK_REQUEST\n");
+					break;
+					
+					default:
+						break;
+					}
+					/* code */
+					break;
+				case LOGOUT_REQUEST: //request code: 14
+					/* code */
+					printf("LOGOUT_REQUEST\n");
+					break;
+
 				default:
 					break;
 				}
-				/* code */
-				break;
-			case LOGOUT_REQUEST: //request code: 14
-				/* code */
-				break;
-
-			default:
-				break;
 			}
 			break;
 		default:

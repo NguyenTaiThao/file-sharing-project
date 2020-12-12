@@ -158,10 +158,10 @@ int main(int argc, char *argv[])
 			
 		
 		navigation(sock);
-		send(sock , "anhyeuem" , 9, 0 ); 
+		// send(sock , "anhyeuem" , 9, 0 ); 
 		
 		//waiting for response 
-		read(sock, buffer,100); 
+		// read(sock, buffer,100); 
         printf("%s\n", buffer);
 		
 	}while(1);	

@@ -10,7 +10,7 @@
 
 #define BUFF_SIZE 100
 
-int printUnJoinedGroups(char str[1000], char available_groups[20][50]){
+int printAvailableGroups(char str[1000], char available_groups[20][50]){
 	char *token;
 	int number_of_available_groups = 0;
    	/* get the first token */
@@ -28,7 +28,7 @@ int printUnJoinedGroups(char str[1000], char available_groups[20][50]){
 
 int menu1();
 int menu2();
-int menu3();
+int menu3(char group_name[50]);
 void navigation(int sock);
 void createGroup(int sock);
 void sendCode(int sock, int code);
@@ -140,12 +140,12 @@ int menu2()
 	}
 }
 
-int menu3()
+int menu3(char group_name[50])
 {
     int choice, catch;
 	char err[10];
 	printf("\n\n");
-	printf("========================== GROUP ========================\n");
+	printf("========================== %s ========================\n", group_name);
     printf("1. Tai len.\n");
     printf("2. Tai xuong.\n");
     printf("3. Xoa.\n");
@@ -194,7 +194,7 @@ void navigation(int sock){
 					sendCode(sock, JOIN_GROUP_REQUEST);
 					read(sock, buffer, 1000); 
 					char available_group[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
-					int number_of_available_groups = printUnJoinedGroups(buffer, available_group);
+					int number_of_available_groups = printAvailableGroups(buffer, available_group);
 					int selected_group;
 					printf("Which group do you want to join? (1-%d): ", number_of_available_groups);
 					scanf("%d", &selected_group);
@@ -207,13 +207,22 @@ void navigation(int sock){
 					}
 					break;
 				case 3:
-					printf("Day la chuc nang truy cap nhom da vao\n");
+					printf("========================== Available Group ==========================\n");
 					sendCode(sock, ACCESS_GROUP_REQUEST);
 					read(sock, buffer, 1000); 
-					printf("%s\n", buffer);
+					number_of_available_groups = printAvailableGroups(buffer, available_group);
+					printf("Which group do you want to access? (1-%d): ", number_of_available_groups);
+					scanf("%d", &selected_group);
+					send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 );
+					read(sock, buffer, 1000);
+					if(atoi(buffer) == ACCESS_GROUP_SUCCESS){
+						printf("Access %s successfully\n", available_group[selected_group-1]);
+					}else{
+						printf("Something wrong!!!\n");
+					}
 					z3 = 0;
 					while(z3 != 5){
-						z3 = menu3();
+						z3 = menu3(available_group[selected_group-1]);
 						switch (z3)
 						{
 							case 1:

@@ -20,6 +20,7 @@
 #define ACCOUNT_BLOCKED 802
 #define CREATE_GROUP_SUCCESS 803
 #define JOIN_GROUP_SUCCESS 804
+#define ACCESS_GROUP_SUCCESS 805
 //==================================================//
 
 #define INCORRECT_PASSWORD 900

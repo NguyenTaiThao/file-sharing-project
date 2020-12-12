@@ -389,13 +389,18 @@ void sendCode(int sock, int code){
 }
 
 singleList joinedGroups(singleList users, char username[50]){
+	singleList joined_groups;
+	createSingleList(&joined_groups);
 	users.cur = users.root;
 	while(users.cur != NULL)
 	{
 		if(strcmp(((user_struct*)users.cur->element)->user_name, username) == 0){
-			return ((user_struct*)users.cur->element)->joined_groups;
+			joined_groups = ((user_struct*)users.cur->element)->joined_groups;
+			break;
 		}
+		users.cur = users.cur->next;
 	}
+	return joined_groups;
 }
 
 int main(int argc, char *argv[]) 
@@ -520,17 +525,19 @@ int main(int argc, char *argv[])
 					}else{
 						send(new_socket , "something wrong", 16, 0 );
 					}
-					printUsers(users);
-					printGroup(groups);
 					break;
 				case ACCESS_GROUP_REQUEST: //request code: 13
 					printf("ACCESS_GROUP_REQUEST\n");
 					singleList joined_group;
 					createSingleList(&joined_group);
-					joined_group = joinedGroups(users, "trung2");
-					char str[200];
+					joined_group = joinedGroups(users, "thao1");
 					convertSimpleGroupsToString(joined_group, str);
 					send(new_socket , str, strlen(str) + 1, 0 );
+					read( new_socket , buff, 100);
+					printf("nhom da chon: %s\n", buff);
+					sendCode(new_socket, ACCESS_GROUP_SUCCESS);
+					read( new_socket , buff, 100);
+					REQUEST = atoi(buff);
 					while(REQUEST != BACK_REQUEST){
 						x = read( new_socket , buff, 100);
 						REQUEST = atoi(buff);

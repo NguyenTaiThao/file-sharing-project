@@ -155,10 +155,78 @@ void readFileFile(singleList *files){
 	}
 }
 
-int checkExistence(int type, singleList list, char name[50]){
+int checkExistence(int type, singleList list, char string[50])
+{
 	// type = 1 check user
 	// type = 2 check group
 	// type = 3 check file
+	switch (type)
+	{
+	case 1:
+		// Check user
+		{
+			int i = 0;
+			list.cur = list.root;
+			while (list.cur != NULL)
+			{
+				i++;
+				if(strcmp(((user_struct*)list.cur->element)->user_name,string) != 0)
+				{
+					list.cur = list.cur->next;
+				}
+				else {
+					return 1;
+				}
+				
+			}
+			return 0; 
+		}
+		break;
+	case 2:
+		// Check Group
+		{
+			int i = 0;
+			list.cur = list.root;
+			while (list.cur != NULL)
+			{
+				i++;
+				if(strcmp(((group_struct*)list.cur->element)->group_name,string) != 0)
+				{
+					list.cur = list.cur->next;
+				}
+				else {
+					return 1;
+				}
+				
+			}
+			return 0; 
+		}
+		break;
+	case 3:
+		// Check File
+		{
+			int i = 0;
+			list.cur = list.root;
+			while (list.cur != NULL)
+			{
+				i++;
+				if(strcmp(((file_struct*)list.cur->element)->name,string) != 0)
+				{
+					list.cur = list.cur->next;
+				}
+				else {
+					return 1;
+				}
+				
+			}
+			return 0; 
+		}
+		break;
+
+	default:
+		printf("Type chua hop le !! (1,2 or 3)\n");
+		break;
+	}
 }
 
 int addMember(singleList groups, char group_name[50], char username[50]){

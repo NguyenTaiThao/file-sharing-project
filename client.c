@@ -10,11 +10,22 @@
 
 #define BUFF_SIZE 100
 
-int menu1();
-int menu2();
-int menu3();
-void navigation(int sock);
-void createGroup(int sock);
+int printUnJoinedGroups(char str[1000], char available_groups[20][50]){
+	char *token;
+	int number_of_available_groups = 0;
+   	/* get the first token */
+   	token = strtok(str, "+");
+   
+   	/* walk through other tokens */
+   	while( token != NULL ) {
+    	printf( "%d. %s\n", number_of_available_groups + 1, token );
+		strcpy(available_groups[number_of_available_groups], token);
+    	token = strtok(NULL, "+");
+		number_of_available_groups++;
+   	}
+	return number_of_available_groups;
+}
+
 void sendCode(int sock, int code);
 void receiveResponse(int my_sock);
 
@@ -174,10 +185,21 @@ void navigation(int sock){
 					createGroup(sock);
 					break;
 				case 2:
-					printf("Day la chuc nang vao nhom\n");
+					printf("========================== Available Group ==========================\n");
 					sendCode(sock, JOIN_GROUP_REQUEST);
 					read(sock, buffer, 1000); 
-					printf("%s\n", buffer);
+					char available_group[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+					int number_of_available_groups = printUnJoinedGroups(buffer, available_group);
+					int selected_group;
+					printf("Which group do you want to join? (1-%d): ", number_of_available_groups);
+					scanf("%d", &selected_group);
+					send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 ); 
+					read(sock, buffer, 1000);
+					if(atoi(buffer) == JOIN_GROUP_SUCCESS){
+						printf("Join successfully\n");
+					}else{
+						printf("Something wrong!!!\n");
+					}
 					break;
 				case 3:
 					printf("Day la chuc nang truy cap nhom da vao\n");

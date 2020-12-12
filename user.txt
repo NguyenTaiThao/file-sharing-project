@@ -13,6 +13,7 @@ trung1 123 1
 1
 group3
 trung2 123 1
+0
 trung3 123 1
 3
 group1

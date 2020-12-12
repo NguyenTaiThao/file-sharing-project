@@ -17,7 +17,9 @@
 //====================== ALERT =====================//
 #define REGISTER_SUCCESS 800
 #define LOGIN_SUCCESS 801
-#define ACCOUNT_BLOCKED 803
+#define ACCOUNT_BLOCKED 802
+#define CREATE_GROUP_SUCCESS 803
+#define JOIN_GROUP_SUCCESS 804
 //==================================================//
 
 #define INCORRECT_PASSWORD 900

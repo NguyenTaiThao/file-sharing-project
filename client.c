@@ -99,7 +99,6 @@ void navigation(int sock){
 		case 2:
 			do {
 				sendCode(sock, LOGIN_REQUEST);
-				printf("Dang ki thanh cong\n");
 
 				z2 = menu2();
 				switch (z2)

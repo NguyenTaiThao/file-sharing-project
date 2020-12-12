@@ -10,9 +10,71 @@
 
 #define BUFF_SIZE 100
 
+int menu1();
+int menu2();
+int menu3();
+void navigation(int sock);
+void createGroup(int sock);
 void sendCode(int sock, int code);
+void receiveResponse(int my_sock);
 
-void * receiveResponse(void *my_sock);
+int main(int argc, char *argv[]) 
+{
+	pthread_t thread;
+
+	if(argc!=3){
+		printf("Please input IP address and port number\n");
+		return 0;
+	}
+	// ip_address of server
+	// port number	
+	char *ip_address = argv[1];
+	char *port_number = argv[2];
+	int port = atoi(port_number);
+	int sock = 0; 
+	struct sockaddr_in serv_addr; 
+
+	// Try catch false when connecting
+	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
+	{ 
+		printf("\n Socket creation error \n"); 
+		return -1; 
+	} 
+
+	serv_addr.sin_family = AF_INET; 
+	serv_addr.sin_port = htons(port); 
+	
+	// Convert IPv4 and IPv6 addresses from text to binary form 
+	if(inet_pton(AF_INET, ip_address, &serv_addr.sin_addr)<=0) 
+	{ 
+		printf("\nInvalid address/ Address not supported \n"); 
+		return -1; 
+	} 
+
+	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) 
+	{ 
+		printf("\nConnection Failed \n"); 
+		return -1; 
+	} 
+
+
+	// if (pthread_create(&thread, (void *) NULL, receiveResponse, (void *) &sock ) < 0) {
+    //     printf("ERROR: creating thread\n");
+    //     exit(1);
+    // }
+
+
+	// ============================Start to communicate with Server======================
+	// ==================================================================================
+	do {
+		navigation(sock);
+	}while(1);	
+	
+	// close the descriptor 
+	close(sock); 
+		
+	return 0; 
+} 
 
 int menu1()
 {
@@ -68,11 +130,11 @@ int menu3()
 	char err[10];
 	printf("\n\n");
 	printf("========================== GROUP ========================\n");
-    printf("1. Upload.\n");
-    printf("2. Download.\n");
-    printf("3. Delete.\n");
-    printf("4. List all files in group.\n");
-	printf("5. Back.\n");
+    printf("1. Tai len.\n");
+    printf("2. Tai xuong.\n");
+    printf("3. Xoa.\n");
+    printf("4. Liet ke tat ca cac file.\n");
+	printf("5. Tro lai.\n");
 	printf("==========================================================\n");
     printf("=> Nhap lua chon cua ban: ");
     catch = scanf("%d",&choice);
@@ -108,8 +170,8 @@ void navigation(int sock){
 				switch (z2)
 				{
 				case 1:
-					printf("Day la chuc nang tao nhom\n");
 					sendCode(sock, CREATE_GROUP_REQUEST);
+					createGroup(sock);
 					break;
 				case 2:
 					printf("Day la chuc nang vao nhom\n");
@@ -162,80 +224,34 @@ void navigation(int sock){
 	}
 }
 
+void createGroup(int sock){
+	char group_name[50], c;
+	printf("Nhap ten nhom: ");
+
+	while ((c = getchar()) != '\n' && c != EOF) { }
+
+	fgets(group_name, 50, stdin);
+	group_name[strlen(group_name) - 1] = '\0';
+	send(sock, group_name, strlen(group_name) + 1, 0);
+	receiveResponse(sock);
+}
+
 void sendCode(int sock, int code){
 	char codeStr[10];
 	sprintf(codeStr, "%d", code);
 	send(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
 }
 
-int main(int argc, char *argv[]) 
-{
-	pthread_t thread;
-
-	if(argc!=3){
-		printf("Please input IP address and port number\n");
-		return 0;
-	}
-	// ip_address of server
-	// port number	
-	char *ip_address = argv[1];
-	char *port_number = argv[2];
-	int port = atoi(port_number);
-	int sock = 0; 
-	struct sockaddr_in serv_addr; 
-
-	// Try catch false when connecting
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
-	{ 
-		printf("\n Socket creation error \n"); 
-		return -1; 
-	} 
-
-	serv_addr.sin_family = AF_INET; 
-	serv_addr.sin_port = htons(port); 
-	
-	// Convert IPv4 and IPv6 addresses from text to binary form 
-	if(inet_pton(AF_INET, ip_address, &serv_addr.sin_addr)<=0) 
-	{ 
-		printf("\nInvalid address/ Address not supported \n"); 
-		return -1; 
-	} 
-
-	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) 
-	{ 
-		printf("\nConnection Failed \n"); 
-		return -1; 
-	} 
-
-
-	if (pthread_create(&thread, (void *) NULL, receiveResponse, (void *) &sock ) < 0) {
-        printf("ERROR: creating thread\n");
-        exit(1);
-    }
-
-
-	// ============================Start to communicate with Server======================
-	// ==================================================================================
-	do {
-		navigation(sock);
-	}while(1);	
-	
-	// close the descriptor 
-	close(sock); 
-		
-	return 0; 
-} 
-
-void * receiveResponse(void *my_sock){
-	while(1) {
-        int sockfd = *((int *)my_sock);
+void receiveResponse(int my_sock){
+	// while(1) {
+        // int sockfd = *((int *)my_sock);
 		char data[1024];
         int n;
-        if((n = recv(sockfd, data, BUFF_SIZE, 0)) == 0) {
+        if((n = recv(my_sock, data, BUFF_SIZE, 0)) == 0) {
             perror("The server terminated prematurely");
             exit(4);
         }
 		data[n] = '\0';
 		printf("%s\n",data);
-	}
+	// }
 }

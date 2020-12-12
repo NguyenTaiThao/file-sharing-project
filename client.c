@@ -117,7 +117,8 @@ void navigation(int sock){
 				case 3:
 					printf("Day la chuc nang truy cap nhom da vao\n");
 					sendCode(sock, ACCESS_GROUP_REQUEST);
-					while(1){
+					z3 = 0;
+					while(z3 != 5){
 						z3 = menu3();
 						switch (z3)
 						{

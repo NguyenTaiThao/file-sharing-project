@@ -16,10 +16,10 @@
 int REQUEST;
 
 
-void readGroupFile(singleList *list){
+void readGroupFile(singleList *groups){
 	
 	// clear list
-	deleteSingleList(list);
+	deleteSingleList(groups);
 	FILE *fp;
 	fp = fopen("group.txt","r");
 	char str_tmp[100];
@@ -68,7 +68,7 @@ void readGroupFile(singleList *list){
 		}
 		group_element->files = files;
 		//=====================end read files=========================================
-		insertEnd(list, group_element); // add group_element to group_list
+		insertEnd(groups, group_element); // add group_element to group_list
 		char c = fgetc(fp);
     	if (c != EOF){
 			int res = fseek( fp, -1, SEEK_CUR );
@@ -308,6 +308,43 @@ singleList UnJoinedGroups(singleList groups, singleList users, char username[50]
 	return un_joined_groups;
 }
 
+
+void convertSimpleGroupsToString(singleList simple_group, char str[1000]){
+	str[0] = '\0';
+	simple_group.cur = simple_group.root;
+	while(simple_group.cur != NULL)
+  	{
+		strcat(str, ((simple_group_struct*)simple_group.cur->element)->group_name);
+		if(simple_group.cur->next == NULL){
+			str[strlen(str)] = '\0';
+		}else{
+			strcat(str, "+");
+		}
+    	simple_group.cur = simple_group.cur->next;
+  	}
+}
+
+void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info[200]){
+	char temp_str[10];
+	group_info[0] = '\0';
+	groups.cur = groups.root;
+	while(groups.cur != NULL){
+		if(strcmp( ((group_struct*)groups.cur->element)->group_name, group_name) == 0){
+			strcat(group_info, group_name);
+			strcat(group_info, "+");
+			strcat(group_info, ((group_struct*)groups.cur->element)->owner);
+			strcat(group_info, "+");
+			sprintf(temp_str, "%d", ((group_struct*)groups.cur->element)->number_of_members);
+			strcat(group_info, temp_str);
+			strcat(group_info, "+");
+			sprintf(temp_str, "%d", ((group_struct*)groups.cur->element)->number_of_files);
+			strcat(group_info, temp_str);
+			group_info[strlen(group_info)] = '\0';
+		}
+		groups.cur = groups.cur->next;
+	}
+}
+
 int main(int argc, char *argv[]) 
 {
 	
@@ -382,20 +419,16 @@ int main(int argc, char *argv[])
 	// writeToGroupFile("group 5", "trungasd", 1, 1, members, files);
 
 
-	singleList list, files, users;
+	singleList groups, files, users;
 
-	createSingleList(&list);
+	createSingleList(&groups);
 	createSingleList(&files);
 	createSingleList(&users);
 	
-	readGroupFile(&list);
+	readGroupFile(&groups);
 	readFileFile(&files);
 	readUserFile(&users);
 
-	singleList asd;
-	createSingleList(&asd);
-	asd = UnJoinedGroups(list, users, "trung2");
-	printSimpleGroup(asd);
 	// while(1){
     //     //x = read( new_socket , buffer, 100);
 	// 	REQUEST = atoi(buff);

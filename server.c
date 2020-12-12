@@ -351,6 +351,37 @@ void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info
 	}
 }
 
+void createGroup(int sock, singleList *groups){
+	char buff[100], noti[100], cmd[100];
+	read(sock, buff, 100);
+
+	if(checkExistence(2, *groups, buff) == 1){
+		strcpy(noti, "Ten nhom vua nhap da duoc su dung.");
+		send(sock, noti, strlen(noti) + 1, 0);
+	}else{
+		group_struct *group_element = (group_struct*) malloc(sizeof(group_struct));
+		singleList members, files;
+		
+		createSingleList(&members);
+		createSingleList(&files);
+
+		strcpy(group_element->group_name, buff);
+		group_element->files = files;
+		group_element->members = members;
+		group_element->number_of_files = 0;
+		group_element->number_of_members = 1;
+
+		insertEnd(groups, group_element);
+		strcpy(cmd, "mkdir ");
+		strcat(cmd, "./files/");
+		strcat(cmd, buff);
+		system(cmd);
+
+		strcpy(noti, "Nhom duoc tao thanh cong.");
+		send(sock, noti, strlen(noti) + 1, 0);
+	}
+}
+
 void sendCode(int sock, int code){
 	char codeStr[10];
 	sprintf(codeStr, "%d", code);

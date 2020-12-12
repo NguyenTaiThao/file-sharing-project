@@ -26,6 +26,11 @@ int printUnJoinedGroups(char str[1000], char available_groups[20][50]){
 	return number_of_available_groups;
 }
 
+int menu1();
+int menu2();
+int menu3();
+void navigation(int sock);
+void createGroup(int sock);
 void sendCode(int sock, int code);
 void receiveResponse(int my_sock);
 

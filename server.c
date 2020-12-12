@@ -447,7 +447,7 @@ int main(int argc, char *argv[])
 			break;
 		case LOGIN_REQUEST:
 			// nhan username va password
-			printf("LOGIN_REQUEST\n");
+			printf("REGISTER_REQUEST\n");
 			REQUEST = atoi(buff);
 			switch (REQUEST)
 			{

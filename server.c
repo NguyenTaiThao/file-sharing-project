@@ -462,8 +462,8 @@ int main(int argc, char *argv[])
 					printf("JOIN_GROUP_REQUEST\n");
 					break;
 				case ACCESS_GROUP_REQUEST: //request code: 13
-					x = read( new_socket , buff, 100);
 					printf("JOIN_GROUP_REQUEST\n");
+					x = read( new_socket , buff, 100);
 					REQUEST = atoi(buff);
 					switch (REQUEST)
 					{

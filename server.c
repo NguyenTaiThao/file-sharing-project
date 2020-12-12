@@ -461,6 +461,7 @@ int main(int argc, char *argv[])
 				case CREATE_GROUP_REQUEST: //request code: 11
 					/* code */
 					printf("CREATE_GROUP_REQUEST\n");
+					createGroup(new_socket, &groups);
 					break;
 				case JOIN_GROUP_REQUEST: //request code: 12
 					/* code */

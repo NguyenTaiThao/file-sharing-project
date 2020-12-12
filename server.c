@@ -197,7 +197,48 @@ int addGroupToJoinedGroups(singleList users, char username[50], char group_name[
 	return 0;
 }
 
+singleList UnJoinedGroups(singleList groups, singleList users, char username[50]){
+	singleList joined_groups;
+	createSingleList(&joined_groups);
+	singleList un_joined_groups;
+	createSingleList(&un_joined_groups);
+	users.cur = users.root;
+	while(users.cur != NULL)
+	{
+		if(strcmp(((user_struct*)users.cur->element)->user_name, username) == 0){
+			groups.cur = groups.root;
+			joined_groups = ((user_struct*)users.cur->element)->joined_groups;
+			break;
+		}
+		users.cur = users.cur->next;
+	}
 
+	groups.cur = groups.root;
+	while(groups.cur != NULL)
+	{
+		int check = 0;
+		joined_groups.cur = joined_groups.root;
+		while(joined_groups.cur != NULL)
+		{
+			if( strcmp( ((group_struct*)groups.cur->element)->group_name, ((simple_group_struct*)joined_groups.cur->element)->group_name) == 0)
+			{
+				check = 1;
+				break;
+			}
+			joined_groups.cur = joined_groups.cur->next;
+		}
+		if(check == 0){
+			simple_group_struct *group_element = (simple_group_struct*) malloc(sizeof(simple_group_struct));
+			strcpy(group_element->group_name, ((group_struct*)groups.cur->element)->group_name);
+			insertEnd(&un_joined_groups, group_element);
+		}
+		groups.cur = groups.cur->next;
+	}
+	
+	//return 1;
+	//printSimpleGroup(un_joined_groups);
+	return un_joined_groups;
+}
 
 int main(int argc, char *argv[]) 
 {
@@ -283,9 +324,10 @@ int main(int argc, char *argv[])
 	readFileFile(&files);
 	readUserFile(&users);
 
-	printf("\n\nsuccess? %d\n", addGroupToJoinedGroups(users, "thao2", "new_group"));
-	printUsers(users);
-
+	singleList asd;
+	createSingleList(&asd);
+	asd = UnJoinedGroups(list, users, "trung2");
+	printSimpleGroup(asd);
 	// while(1){
     //     //x = read( new_socket , buffer, 100);
 	// 	REQUEST = atoi(buff);

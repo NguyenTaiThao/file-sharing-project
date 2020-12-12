@@ -199,6 +199,16 @@ int printUser(singleList list)
   return i;
 }
 
+void printSimpleGroup(singleList group)
+{
+  group.cur = group.root;
+	while(group.cur != NULL)
+  {
+    printf("%s\n", ((simple_group_struct*)group.cur->element)->group_name);
+    group.cur = group.cur->next;
+  }
+}
+
 int printFile(singleList list)
 {
   int i=0;

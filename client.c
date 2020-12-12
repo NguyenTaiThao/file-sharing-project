@@ -8,6 +8,7 @@
 #include "./communication_code.h"
 
 
+
 void sendCode(int sock, int code);
 
 int menu1()
@@ -61,7 +62,7 @@ int menu2()
 void navigation(int sock){
 	int z1,z2;
 	char code[10];
-
+	char buffer[1000];
 	z1 = menu1();
 	
 	switch (z1)
@@ -85,6 +86,8 @@ void navigation(int sock){
 				case 2:
 					printf("Day la chuc nang vao nhom\n");
 					sendCode(sock, JOIN_GROUP_REQUEST);
+					read(sock, buffer, 1000); 
+					printf("%s\n", buffer);
 					break;
 				case 3:
 					printf("Day la chuc nang truy cap nhom da vao\n");
@@ -158,10 +161,10 @@ int main(int argc, char *argv[])
 			
 		
 		navigation(sock);
-		send(sock , "anhyeuem" , 9, 0 ); 
+		// send(sock , "anhyeuem" , 9, 0 ); 
 		
 		//waiting for response 
-		read(sock, buffer,100); 
+		// read(sock, buffer,100); 
         printf("%s\n", buffer);
 		
 	}while(1);	

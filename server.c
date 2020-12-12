@@ -302,9 +302,6 @@ singleList UnJoinedGroups(singleList groups, singleList users, char username[50]
 		}
 		groups.cur = groups.cur->next;
 	}
-	
-	//return 1;
-	//printSimpleGroup(un_joined_groups);
 	return un_joined_groups;
 }
 
@@ -327,19 +324,29 @@ void convertSimpleGroupsToString(singleList simple_group, char str[1000]){
 void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info[200]){
 	char temp_str[10];
 	group_info[0] = '\0';
+	strcat(group_info, "===========================================\n\t\t");
+	strcat(group_info, group_name);
 	groups.cur = groups.root;
 	while(groups.cur != NULL){
 		if(strcmp( ((group_struct*)groups.cur->element)->group_name, group_name) == 0){
-			strcat(group_info, group_name);
-			strcat(group_info, "+");
+			strcat(group_info, "\n- Created by ");
 			strcat(group_info, ((group_struct*)groups.cur->element)->owner);
-			strcat(group_info, "+");
+			strcat(group_info, ".\n- ");
 			sprintf(temp_str, "%d", ((group_struct*)groups.cur->element)->number_of_members);
 			strcat(group_info, temp_str);
-			strcat(group_info, "+");
+			strcat(group_info, " members.\n- ");
 			sprintf(temp_str, "%d", ((group_struct*)groups.cur->element)->number_of_files);
 			strcat(group_info, temp_str);
+			strcat(group_info, " files shared.\n");
+			strcat(group_info, "===========================================\n");
+			strcat(group_info, "1. Upload\n");
+			strcat(group_info, "2. Download\n");
+			strcat(group_info, "3. Delete\n");
+			strcat(group_info, "4. View Files\n");
+			strcat(group_info, "5. Back to menu\n");
+			strcat(group_info, "===========================================\n");
 			group_info[strlen(group_info)] = '\0';
+			break;
 		}
 		groups.cur = groups.cur->next;
 	}
@@ -347,9 +354,7 @@ void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info
 
 int main(int argc, char *argv[]) 
 {
-	
-
-	// catch wrong input
+	//catch wrong input
 	// if(argc==1){
 	// 	printf("Please input port number\n");
 	// 	return 0;
@@ -401,22 +406,6 @@ int main(int argc, char *argv[])
 	//=================================================================================================
 	int x;
 	char buff[100];
-	// singleList group_list;
-	// createSingleList(&group_list);
-	// group_struct group_element; 
-	// readGroupFile(&group_list);
-	// printGroup(group_list);
-	// singleList members;
-	// createSingleList(&members);
-	// simple_user_struct *user1 = (simple_user_struct*) malloc(sizeof(simple_user_struct));
-	// strcpy(user1->user_name, "trung1");
-	// insertEnd(&members, user1);
-	// singleList files;
-	// createSingleList(&files);
-	// simple_file_struct *file1 = (simple_file_struct*) malloc(sizeof(simple_file_struct));
-	// strcpy(file1->file_name, "file1.exe");
-	// insertEnd(&files, file1);
-	// writeToGroupFile("group 5", "trungasd", 1, 1, members, files);
 
 
 	singleList groups, files, users;
@@ -428,9 +417,27 @@ int main(int argc, char *argv[])
 	readGroupFile(&groups);
 	readFileFile(&files);
 	readUserFile(&users);
+	
 
+	singleList asd;
+	createSingleList(&asd);
+	asd = UnJoinedGroups(groups, users, "thao2");
+	
+	//lay ra thong tin, dong thoi tao menu
+	char s[1000];
+	getBasicInfoOfGroup(groups,"group1", s);
+	printf("%s\n", s);
+
+
+
+
+	// x = read( new_socket , buff, 100);
+	// printf("%s\n", buff);
+	// send(new_socket , "123", 4 , 0 );
+	
+	
 	// while(1){
-    //     //x = read( new_socket , buffer, 100);
+        
 	// 	REQUEST = atoi(buff);
 	// 	switch (REQUEST)
 	// 	{
@@ -487,7 +494,7 @@ int main(int argc, char *argv[])
 	// 	default:
 	// 		break;
 	// 	}
-    //     //send(new_socket , "123", 4 , 0 );
+        
         
     // }
 	return 0; 

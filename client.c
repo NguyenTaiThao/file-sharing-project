@@ -8,6 +8,8 @@
 #include "./communication_code.h"
 
 
+void sendCode(int sock, int code);
+
 int menu1()
 {
     int choice, catch;
@@ -107,7 +109,7 @@ void navigation(int sock){
 void sendCode(int sock, int code){
 	char codeStr[10];
 	sprintf(codeStr, "%d", code);
-	// send(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
+	send(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
 }
 
 int main(int argc, char *argv[]) 
@@ -141,11 +143,11 @@ int main(int argc, char *argv[])
 		return -1; 
 	} 
 
-	// if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) 
-	// { 
-	// 	printf("\nConnection Failed \n"); 
-	// 	return -1; 
-	// } 
+	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) 
+	{ 
+		printf("\nConnection Failed \n"); 
+		return -1; 
+	} 
 
 
 	// ============================Start to communicate with Server======================

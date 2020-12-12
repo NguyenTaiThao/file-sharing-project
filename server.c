@@ -353,7 +353,7 @@ void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info
 }
 
 void createGroup(int sock, singleList *groups){
-	char buff[100], noti[100];
+	char buff[100], noti[100], cmd[100];
 	read(sock, buff, 100);
 
 	if(checkExistence(2, *groups, buff) == 1){
@@ -370,9 +370,13 @@ void createGroup(int sock, singleList *groups){
 		group_element->files = files;
 		group_element->members = members;
 		group_element->number_of_files = 0;
-		group_element->number_of_members = 0;
+		group_element->number_of_members = 1;
 
 		insertEnd(groups, group_element);
+		strcpy(cmd, "mkdir ");
+		strcat(cmd, "./files/");
+		strcat(cmd, buff);
+		system(cmd);
 
 		strcpy(noti, "Nhom duoc tao thanh cong.");
 		send(sock, noti, strlen(noti) + 1, 0);

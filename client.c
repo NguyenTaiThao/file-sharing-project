@@ -39,7 +39,7 @@ int menu2()
     int choice, catch;
 	char err[10];
 	printf("\n\n");
-	printf("========================== GROUP ========================\n");
+	printf("========================= GROUPS ========================\n");
     printf("1. Tao nhom\n");
     printf("2. Vao nhom\n");
     printf("3. Truy cap nhom da vao\n");
@@ -59,8 +59,34 @@ int menu2()
 	}
 }
 
+int menu3()
+{
+    int choice, catch;
+	char err[10];
+	printf("\n\n");
+	printf("========================== GROUP ========================\n");
+    printf("1. Upload.\n");
+    printf("2. Download.\n");
+    printf("3. Delete.\n");
+    printf("4. List all files in group.\n");
+	printf("5. Back.\n");
+	printf("==========================================================\n");
+    printf("=> Nhap lua chon cua ban: ");
+    catch = scanf("%d",&choice);
+
+	printf("\n\n");
+
+    if(catch > 0) return choice;
+	else {
+		fgets(err, 10, stdin);
+		err[strlen(err)-1] = '\0';
+		printf("\"%s\" is not allowed!\n",err);
+		return -1;
+	}
+}
+
 void navigation(int sock){
-	int z1,z2;
+	int z1, z2, z3;
 	char code[10];
 	char buffer[1000];
 	z1 = menu1();
@@ -74,7 +100,6 @@ void navigation(int sock){
 		case 2:
 			do {
 				sendCode(sock, LOGIN_REQUEST);
-				printf("Dang ki thanh cong\n");
 
 				z2 = menu2();
 				switch (z2)
@@ -92,6 +117,30 @@ void navigation(int sock){
 				case 3:
 					printf("Day la chuc nang truy cap nhom da vao\n");
 					sendCode(sock, ACCESS_GROUP_REQUEST);
+					while(1){
+						z3 = menu3();
+						switch (z3)
+						{
+							case 1:
+								sendCode(sock, UPLOAD_REQUEST);
+								break;
+							case 2:
+								sendCode(sock, DOWNLOAD_REQUEST);
+								break;
+							case 3:
+								sendCode(sock, DELETE_REQUEST);
+								break;
+							case 4:
+								sendCode(sock, VIEW_FILES_REQUEST);
+								break;
+							case 5:
+								sendCode(sock, BACK_REQUEST);
+								z3 = 5;
+								break;
+							default:
+								break;
+						}
+					}
 					break;
 				case 4:
 					printf("Day la chuc nang dang xuat\n");

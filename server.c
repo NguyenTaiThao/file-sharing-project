@@ -436,20 +436,17 @@ singleList getAllFilesOfGroup(singleList groups, char group_name[50]){
 
 
 
-int SendFileToClient(int new_socket, char fname[50])
+void* SendFileToClient(int new_socket, char fname[50])
 {
-	char sizeStr[10];
-	struct stat st;
-	stat(fname, &st);
-	long int size = st.st_size;
-	printf("%ld\n", size);
-	sprintf(sizeStr, "%ld", size);
-	send(new_socket , sizeStr, strlen(sizeStr)+1, 0 );
+    write(new_socket, fname,256);
+
     FILE *fp = fopen(fname,"rb");
     if(fp==NULL)
     {
-        printf("%s\n","File opern error");
-    }  
+        printf("File opern error");
+        return 1;   
+    }   
+
     /* Read data from file and send it */
     while(1)
     {
@@ -462,14 +459,14 @@ int SendFileToClient(int new_socket, char fname[50])
         if(nread > 0)
         {
             //printf("Sending \n");
-			send(new_socket , buff, nread + 1, 0 );
-            //send(new_socket, buff, nread);
+            write(new_socket, buff, nread);
         }
         if (nread < 1024)
         {
             if (feof(fp))
             {
                 printf("End of file\n");
+				// send(new_socket, "ENDOFFILE", strlen("ENDOFFILE"), 0);
             }
             if (ferror(fp))
                 printf("Error reading\n");

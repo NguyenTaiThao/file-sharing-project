@@ -26,6 +26,53 @@ int printAvailableElements(char str[1000], char available_elements[20][50]){
 	return number_of_available_elements;
 }
 
+int receiveFile(int sock){
+	int bytesReceived = 0;
+	char recvBuff[1024];
+	memset(recvBuff, '0', sizeof(recvBuff));
+	FILE *fp;
+	char fname[100], path[100];
+	read(sock, fname, 256);
+	path[0] = '\0';
+	strcat(path, "./client_source/");
+	strcat(path, fname);
+	// strcpy(fname, path);
+	// system("cd client_source");
+	printf("File Name: %s\n",path);
+	printf("Receiving file...");
+	fp = fopen(path, "ab"); 
+	if(NULL == fp)
+	{
+		printf("Error opening file");
+		return 1;
+	}
+	long double sz=1;
+	/* Receive data in chunks of 256 bytes */
+	while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
+	{ 
+		printf("Receive buff: %s", recvBuff);
+		
+		printf("\n\n\nbytes = %d\n",bytesReceived);
+		sz++;
+		printf("Received: %llf Mb\n",(sz/1024));
+		fflush(stdout);
+		// recvBuff[n] = 0;
+		fwrite(recvBuff, 1,bytesReceived,fp);
+
+		if(bytesReceived < 1024){
+			break;
+		}
+	}
+	fclose(fp);
+	if(bytesReceived < 0)
+	{
+		printf("\n Read Error \n");
+		return 0;
+	}
+	printf("\nFile OK....Completed\n");
+	return 1;
+}
+
 int menu1();
 int menu2();
 int menu3(char group_name[50]);
@@ -231,8 +278,6 @@ void navigation(int sock){
 								break;
 							case 2:
 								sendCode(sock, DOWNLOAD_REQUEST);
-								char recvBuff[1024];
-								memset(recvBuff, '0', sizeof(recvBuff));
 								printf("========================== Available Files ==========================\n");
 								read(sock, buffer, 1000);
 								char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
@@ -240,53 +285,18 @@ void navigation(int sock){
 								int selected_file;
 								printf("Which file do you want to download? (1-%d): ", number_of_available_files);
 								scanf("%d", &selected_file);
-								//send ten file
 								send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
-								//nhan size cua file
-								read(sock, buffer, 1000);
-								int size = atoi(buffer);
-								printf("size = %d\n", size);
-								int bytesReceived = 0;
-								FILE *fp;
-								
-								char path[100];
-								path[0] = '\0';
-								strcat(path, "./client_source/");
-								strcat(path, available_files[selected_file-1]);
-								printf("File Name: %s\n",path);
-								printf("Receiving file...");
-								fp = fopen(path, "ab"); 
-								if(NULL == fp)
-								{
-									printf("Error opening file");
-									return 1;
-								}
-								int totalReceived = 0;
-								long double sz=1;
-								/* Receive data in chunks of 256 bytes */
-								while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
-								{
-									totalReceived += bytesReceived;
-									printf("Receive buff: %s", recvBuff);
-									
-									printf("\n\n\nbytes = %d\n",bytesReceived);
-									sz++;
-									printf("Received: %llf Mb\n",(sz/1024));
-									printf("dung luong = %d\n", totalReceived);
-									fflush(stdout);
-									// recvBuff[n] = 0;
-									fwrite(recvBuff, 1,bytesReceived,fp);
-
-									if(bytesReceived < 1024){
-										break;
+								if(receiveFile(sock) == 1){
+									printf("Open the file? (Y/n): ");
+									char choice[10], command[100];
+									scanf("%s", choice);
+									if(strcmp(choice, "Y") == 0){
+										command[0] = '\0';
+										strcat(command, "xdg-open ./client_source/");
+										strcat(command, available_files[selected_file-1]);
+										system(command);
 									}
 								}
-								if(bytesReceived < 0)
-								{
-									printf("\n Read Error \n");
-								}
-								printf("\nFile OK....Completed\n");
-								fclose(fp);
 								break;
 							case 3:
 								sendCode(sock, DELETE_REQUEST);

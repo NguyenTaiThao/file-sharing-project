@@ -150,7 +150,7 @@ node * deleteBegin(singleList * list)
 {
   if((*list).root != NULL)
 	{
-      node * newNode = (*list).root;
+    node * newNode = (*list).root;
 		(*list).root = (*list).root->next;
 		free(newNode);
 	}
@@ -163,18 +163,18 @@ node * deleteEnd(singleList *list)
 {
   if((*list).root != NULL)
     {
-       (*list).cur = (*list).prev = (*list).root;
-          while(((*list).cur->next != NULL))
-            {
-              (*list).prev = (*list).cur;
-              (*list).cur = (*list).cur->next;
-            }
-        node *newNode = (*list).cur;
-		(*list).cur = (*list).cur->next;
-		free(newNode);
-        (*list).tail = (*list).prev;
-        (*list).tail->next = NULL;
-        return (*list).tail;
+      (*list).cur = (*list).prev = (*list).root;
+        while(((*list).cur->next != NULL))
+          {
+            (*list).prev = (*list).cur;
+            (*list).cur = (*list).cur->next;
+          }
+      node *newNode = (*list).cur;
+      (*list).cur = (*list).cur->next;
+      free(newNode);
+      (*list).tail = (*list).prev;
+      (*list).tail->next = NULL;
+      return (*list).tail;
     }
 }
 
@@ -242,6 +242,7 @@ int printGroup(singleList list)
 }
 
 int printFiles(singleList files){
+  
   file_struct* file = NULL;
   files.cur = files.root;
   while(files.cur != NULL){

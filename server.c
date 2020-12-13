@@ -434,7 +434,21 @@ singleList getAllFilesOfGroup(singleList groups, char group_name[50]){
 	return files;
 }
 
-
+singleList getFilesOwns(singleList files, char username[50]){
+	singleList files_owns;
+	createSingleList(&files_owns);
+	files.cur = files.root;
+	while (files.cur != NULL)
+	{
+		if(strcmp(  ((file_struct*)files.cur->element)->owner, username) == 0){
+			simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+			strcpy(file_element->file_name, ((file_struct*)files.cur->element)->name);
+			insertEnd(&files_owns, file_element);
+		}
+		files.cur = files.cur->next;
+	}
+	return files_owns;
+}
 
 void* SendFileToClient(int new_socket, char fname[50])
 {
@@ -475,7 +489,79 @@ void* SendFileToClient(int new_socket, char fname[50])
     }
 }
 
+singleList getFilesCanDelete(singleList files, singleList groups, char group_name[], char username[]){
+	singleList files_can_delete, all_files_of_group, all_files_owns;
+	createSingleList(&files_can_delete); //file ma nguoi dung co the xoa
+	createSingleList(&all_files_of_group); //tat ca file trong group
+	createSingleList(&all_files_owns); //tat ca file nguoi dung so huu
+	groups.cur = groups.root;
+	while (groups.cur != NULL)
+	{
+		if( strcmp( ((group_struct*)groups.cur->element)->group_name, group_name ) == 0){
+			if( strcmp( ((group_struct*)groups.cur->element)->owner, username ) == 0){
+				return ((group_struct*)groups.cur->element)->files;
+			}else{
+				all_files_of_group = getAllFilesOfGroup(groups, group_name);
+				all_files_owns = getFilesOwns(files, username);
+				all_files_of_group.cur = all_files_of_group.root;
+				while (all_files_of_group.cur != NULL)	
+				{
+					all_files_owns.cur = all_files_owns.root;
+					while (all_files_owns.cur != NULL)	
+					{
+						if( strcmp( ((simple_file_struct*)all_files_owns.cur->element)->file_name, ((simple_file_struct*)all_files_of_group.cur->element)->file_name) == 0){
+							simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+							strcpy(file_element->file_name, ((simple_file_struct*)all_files_owns.cur->element)->file_name);
+							insertEnd(&files_can_delete, file_element);
+						}
+						all_files_owns.cur = all_files_owns.cur->next;
+					}
+					all_files_of_group.cur = all_files_of_group.cur->next;
+				}
+			}
+			break;
+			
+		}
+		groups.cur = groups.cur->next;
+	}
+	
+	return files_can_delete;
+}
 
+
+void deleteFile(singleList *files, singleList groups, char group_name[], char file_name[50]){
+	//delete file in singleList files
+	if( strcmp( ((file_struct*)(*files).root->element)->name, file_name) == 0){
+		deleteBegin(files);
+	}else{
+		(*files).cur = (*files).prev = (*files).root;
+		while ((*files).cur != NULL && strcmp( ((file_struct*)(*files).cur->element)->name, file_name) != 0)
+		{
+			(*files).prev = (*files).cur;
+            (*files).cur = (*files).cur->next;
+		}
+		node *newNode = (*files).cur;
+		(*files).prev->next = (*files).cur->next;
+		(*files).cur = (*files).prev;
+		free(newNode);
+	}
+	//delete file in singleList groups
+	singleList *files_of_group;
+	*files_of_group = getAllFilesOfGroup(groups, group_name);
+	printFile((*files_of_group));
+	if( strcmp( ((simple_file_struct*)(*files_of_group).root->element)->file_name, file_name) == 0){
+		deleteBegin(files_of_group);
+	}else{
+		(*files_of_group).cur = (*files_of_group).prev = (*files_of_group).root;
+		while ((*files_of_group).cur != NULL && strcmp( ((simple_file_struct*)(*files_of_group).cur->element)->file_name, file_name) != 0)
+		{
+			(*files_of_group).prev = (*files_of_group).cur;
+            (*files_of_group).cur = (*files_of_group).cur->next;
+		}
+		(*files_of_group).prev->next = (*files_of_group).cur->next;
+		(*files_of_group).cur = (*files_of_group).prev;
+	}
+}
 
 int main(int argc, char *argv[]) 
 {
@@ -631,15 +717,27 @@ int main(int argc, char *argv[])
 							break;
 						case DELETE_REQUEST: //request code: 133
 						/* code */
-						printf("DELETE_REQUEST\n");
-						break;
+							printf("DELETE_REQUEST\n");
+							singleList files_can_delete;
+							createSingleList(&files_can_delete);
+							files_can_delete = getFilesCanDelete(files, groups, "group3" ,"dung");
+							convertSimpleFilesToString(files_can_delete, str);
+							send(new_socket , str, strlen(str) + 1, 0 );
+							read( new_socket , buff, 100);
+							printf("file da chon: %s\n", buff);
+							deleteFile(&files, groups, "group3", "file7.txt");
+							singleList test;
+							createSingleList(&test);
+							test = getAllFilesOfGroup(groups, "group3");
+							printFile(test);
+							break;
 						case VIEW_FILES_REQUEST: //request code: 134
 						/* code */
 							printf("VIEW_FILES_REQUEST\n");
 							all_files = getAllFilesOfGroup(groups, current_group);
 							convertSimpleFilesToString(all_files, str);
 							send(new_socket , str, strlen(str) + 1, 0 );
-						break;
+							break;
 						case BACK_REQUEST: //request code: 135
 						/* code */
 						printf("BACK_REQUEST\n");

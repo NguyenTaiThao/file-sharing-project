@@ -142,6 +142,7 @@ int main(int argc, char *argv[])
 
 int menu1()
 {
+	system("clear");
     int choice, catch;
 	char err[10];
 	printf("\n\n");
@@ -165,6 +166,7 @@ int menu1()
 
 int menu2()
 {
+	system("clear");
     int choice, catch;
 	char err[10];
 	printf("\n\n");
@@ -173,7 +175,7 @@ int menu2()
     printf("2. Vao nhom\n");
     printf("3. Truy cap nhom da vao\n");
     printf("4. Dang xuat\n");
-	printf("==========================================================\n");
+	printf("=========================================================\n");
     printf("=> Nhap lua chon cua ban: ");
     catch = scanf("%d",&choice);
 
@@ -190,6 +192,7 @@ int menu2()
 
 int menu3(char group_name[50])
 {
+	system("clear");
     int choice, catch;
 	char err[10];
 	printf("\n\n");
@@ -255,7 +258,7 @@ void navigation(int sock){
 					}
 					break;
 				case 3:
-					printf("========================== Available Group ==========================\n");
+					printf("==================== Available Group ====================\n");
 					sendCode(sock, ACCESS_GROUP_REQUEST);
 					read(sock, buffer, 1000);
 					number_of_available_groups = printAvailableElements(buffer, available_group);
@@ -278,7 +281,7 @@ void navigation(int sock){
 								break;
 							case 2:
 								sendCode(sock, DOWNLOAD_REQUEST);
-								printf("========================== Available Files ==========================\n");
+								printf("==================== Available Files =====================\n");
 								read(sock, buffer, 1000);
 								char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 								int number_of_available_files = printAvailableElements(buffer, available_files);
@@ -300,9 +303,15 @@ void navigation(int sock){
 								break;
 							case 3:
 								sendCode(sock, DELETE_REQUEST);
+								printf("==================== Available Files =====================\n");
+								read(sock, buffer, 1000); 
+								number_of_available_files = printAvailableElements(buffer, available_files);
+								printf("Which file do you want to delete? (1-%d): ", number_of_available_files);
+								scanf("%d", &selected_file);
+								send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
 								break;
 							case 4:
-								printf("========================== Available Files ==========================\n");
+								printf("======================= All Files ========================\n");
 								sendCode(sock, VIEW_FILES_REQUEST);
 								read(sock, buffer, 1000); 
 								number_of_available_files = printAvailableElements(buffer, available_files);

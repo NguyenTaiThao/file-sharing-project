@@ -2,9 +2,3 @@ file1.txt thao1 20-12-2020 9
 file2.txt trung1 20-12-2020 2
 file3.txt dung1 20-1-2020 10
 file4.txt dung1 20-1-2020 11
-
-file1.txt thao1 20-12-2020 9
-file2.txt trung1 20-12-2020 2
-file3.txt dung1 20-1-2020 10
-file4.txt dung1 20-1-2020 11
-

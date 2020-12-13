@@ -435,7 +435,7 @@ singleList getAllFilesOfGroup(singleList groups, char group_name[50]){
 
 
 
-void* SendFileToClient(int new_socket, char fname[50])
+int SendFileToClient(int new_socket, char fname[50])
 {
     write(new_socket, fname,256);
 
@@ -443,7 +443,7 @@ void* SendFileToClient(int new_socket, char fname[50])
     if(fp==NULL)
     {
         printf("File opern error");
-        return 1;   
+        return 0;   
     }   
 
     /* Read data from file and send it */
@@ -457,16 +457,19 @@ void* SendFileToClient(int new_socket, char fname[50])
         /* If read was success, send data. */
         if(nread > 0)
         {
-            //printf("Sending \n");
-            write(new_socket, buff, nread);
+            printf("Sending \n");
+			send(new_socket , buff, nread + 1, 0 );
+            //send(new_socket, buff, nread);
         }
         if (nread < 1024)
         {
             if (feof(fp))
             {
                 printf("End of file\n");
+				send(new_socket , "ok", 3, 0 );
             }
             if (ferror(fp))
+				send(new_socket , "not ok", 7, 0 );
                 printf("Error reading\n");
             break;
         }
@@ -625,7 +628,6 @@ int main(int argc, char *argv[])
 							send(new_socket , str, strlen(str) + 1, 0 );
 							read( new_socket , buff, 100);
 							printf("file da chon: %s\n", buff);
-							SendFileToClient(new_socket, buff);
 							break;
 						case DELETE_REQUEST: //request code: 133
 						/* code */

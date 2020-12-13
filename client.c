@@ -245,10 +245,10 @@ void navigation(int sock){
 								FILE *fp;
 								char fname[100];
 								read(sock, fname, 256);
-								system("cd client_source");
+								//strcat(fname,"AK");
 								printf("File Name: %s\n",fname);
 								printf("Receiving file...");
-								fp = fopen(fname, "ab"); 
+								fp = fopen("thao.txt", "ab"); 
 								if(NULL == fp)
 								{
 									printf("Error opening file");
@@ -258,20 +258,23 @@ void navigation(int sock){
 								/* Receive data in chunks of 256 bytes */
 								while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
 								{ 
-									printf("\n\n\nbytes = %d\n",bytesReceived);
+									printf("%s\n", recvBuff);
+									if(strcmp("end", recvBuff) == 0){
+										break;
+									}
 									sz++;
-									printf("Received: %llf Mb\n",(sz/1024));
+									printf("Received: %llf Mb",(sz/1024));
 									fflush(stdout);
 									// recvBuff[n] = 0;
 									fwrite(recvBuff, 1,bytesReceived,fp);
-									printf("%s \n", recvBuff);
+									// printf("%s \n", recvBuff);
 								}
-								fclose(fp);
 								if(bytesReceived < 0)
 								{
 									printf("\n Read Error \n");
 								}
 								printf("\nFile OK....Completed\n");
+								fclose(fp);
 								break;
 							case 3:
 								sendCode(sock, DELETE_REQUEST);

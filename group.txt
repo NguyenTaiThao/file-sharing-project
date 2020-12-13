@@ -6,7 +6,7 @@ dung
 trung
 2
 1.jpg
-2.txt
+file.txt
 group2
 thao
 2

@@ -85,6 +85,7 @@ int main(int argc, char *argv[])
 	do {
 		navigation(sock);
 	}while(1);	
+
 	
 	// close the descriptor 
 	close(sock); 
@@ -230,16 +231,56 @@ void navigation(int sock){
 								break;
 							case 2:
 								sendCode(sock, DOWNLOAD_REQUEST);
+								printf("========================== Available Files ==========================\n");
+								read(sock, buffer, 1000);
+								char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+								int number_of_available_files = printAvailableElements(buffer, available_files);
+								int selected_file;
+								printf("Which file do you want to download? (1-%d): ", number_of_available_files);
+								scanf("%d", &selected_file);
+								send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+								int bytesReceived = 0;
+								char recvBuff[1024];
+								memset(recvBuff, '0', sizeof(recvBuff));
+								FILE *fp;
+								char fname[100];
+								read(sock, fname, 256);
+								system("cd client_source");
+								printf("File Name: %s\n",fname);
+								printf("Receiving file...");
+								fp = fopen(fname, "ab"); 
+								if(NULL == fp)
+								{
+									printf("Error opening file");
+									return 1;
+								}
+								long double sz=1;
+								/* Receive data in chunks of 256 bytes */
+								while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
+								{ 
+									printf("\n\n\nbytes = %d\n",bytesReceived);
+									sz++;
+									printf("Received: %llf Mb\n",(sz/1024));
+									fflush(stdout);
+									// recvBuff[n] = 0;
+									fwrite(recvBuff, 1,bytesReceived,fp);
+									printf("%s \n", recvBuff);
+								}
+								fclose(fp);
+								if(bytesReceived < 0)
+								{
+									printf("\n Read Error \n");
+								}
+								printf("\nFile OK....Completed\n");
 								break;
 							case 3:
 								sendCode(sock, DELETE_REQUEST);
 								break;
 							case 4:
-								printf("========================== Available Group ==========================\n");
+								printf("========================== Available Files ==========================\n");
 								sendCode(sock, VIEW_FILES_REQUEST);
 								read(sock, buffer, 1000); 
-								char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
-								int number_of_available_files = printAvailableElements(buffer, available_files);
+								number_of_available_files = printAvailableElements(buffer, available_files);
 								break;
 							case 5:
 								sendCode(sock, BACK_REQUEST);

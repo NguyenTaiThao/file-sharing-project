@@ -433,6 +433,48 @@ singleList getAllFilesOfGroup(singleList groups, char group_name[50]){
 	return files;
 }
 
+
+
+void* SendFileToClient(int new_socket, char fname[50])
+{
+    write(new_socket, fname,256);
+
+    FILE *fp = fopen(fname,"rb");
+    if(fp==NULL)
+    {
+        printf("File opern error");
+        return 1;   
+    }   
+
+    /* Read data from file and send it */
+    while(1)
+    {
+        /* First read file in chunks of 256 bytes */
+        unsigned char buff[1024]={0};
+        int nread = fread(buff,1,1024,fp);
+        //printf("Bytes read %d \n", nread);        
+
+        /* If read was success, send data. */
+        if(nread > 0)
+        {
+            //printf("Sending \n");
+            write(new_socket, buff, nread);
+        }
+        if (nread < 1024)
+        {
+            if (feof(fp))
+            {
+                printf("End of file\n");
+            }
+            if (ferror(fp))
+                printf("Error reading\n");
+            break;
+        }
+    }
+}
+
+
+
 int main(int argc, char *argv[]) 
 {
 	//catch wrong input
@@ -500,16 +542,12 @@ int main(int argc, char *argv[])
 	readUserFile(&users);
 	
 
-	// singleList asd;
-	// createSingleList(&asd);
-	// asd = UnJoinedGroups(groups, users, "thao2");
 	
-	// //lay ra thong tin, dong thoi tao menu
-	// char s[1000];
-	// getBasicInfoOfGroup(groups,"group1", s);
-	// printf("%s\n", s);
 
-
+	// read(new_socket, buff, 100);
+	// if(strcasecmp(buff, "senddeem")==0){
+	// 	SendFileToClient(new_socket, "group.txt");
+	// }
 
 
 	
@@ -579,8 +617,16 @@ int main(int argc, char *argv[])
 						break;
 						case DOWNLOAD_REQUEST: //request code: 132
 						/* code */
-						printf("DOWNLOAD_REQUEST\n");
-						break;
+							printf("DOWNLOAD_REQUEST\n");
+							singleList all_files;
+							createSingleList(&all_files);
+							all_files = getAllFilesOfGroup(groups, current_group);
+							convertSimpleFilesToString(all_files, str);
+							send(new_socket , str, strlen(str) + 1, 0 );
+							read( new_socket , buff, 100);
+							printf("file da chon: %s\n", buff);
+							SendFileToClient(new_socket, buff);
+							break;
 						case DELETE_REQUEST: //request code: 133
 						/* code */
 						printf("DELETE_REQUEST\n");
@@ -588,8 +634,6 @@ int main(int argc, char *argv[])
 						case VIEW_FILES_REQUEST: //request code: 134
 						/* code */
 							printf("VIEW_FILES_REQUEST\n");
-							singleList all_files;
-							createSingleList(&all_files);
 							all_files = getAllFilesOfGroup(groups, current_group);
 							convertSimpleFilesToString(all_files, str);
 							send(new_socket , str, strlen(str) + 1, 0 );

@@ -4,9 +4,10 @@ trung
 thao 
 dung
 trung
-2
+3
 1.jpg
 file.txt
+anh.png
 group2
 thao
 2

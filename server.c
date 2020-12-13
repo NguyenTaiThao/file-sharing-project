@@ -9,6 +9,7 @@
 #include <arpa/inet.h> 
 #include <netdb.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include "communication_code.h"
 #include "linked_list.h"
 
@@ -437,15 +438,18 @@ singleList getAllFilesOfGroup(singleList groups, char group_name[50]){
 
 int SendFileToClient(int new_socket, char fname[50])
 {
-    write(new_socket, fname,256);
-
+	char sizeStr[10];
+	struct stat st;
+	stat(fname, &st);
+	long int size = st.st_size;
+	printf("%ld\n", size);
+	sprintf(sizeStr, "%ld", size);
+	send(new_socket , sizeStr, strlen(sizeStr)+1, 0 );
     FILE *fp = fopen(fname,"rb");
     if(fp==NULL)
     {
-        printf("File opern error");
-        return 0;   
-    }   
-
+        printf("%s\n","File opern error");
+    }  
     /* Read data from file and send it */
     while(1)
     {
@@ -457,7 +461,7 @@ int SendFileToClient(int new_socket, char fname[50])
         /* If read was success, send data. */
         if(nread > 0)
         {
-            printf("Sending \n");
+            //printf("Sending \n");
 			send(new_socket , buff, nread + 1, 0 );
             //send(new_socket, buff, nread);
         }
@@ -466,10 +470,8 @@ int SendFileToClient(int new_socket, char fname[50])
             if (feof(fp))
             {
                 printf("End of file\n");
-				send(new_socket , "ok", 3, 0 );
             }
             if (ferror(fp))
-				send(new_socket , "not ok", 7, 0 );
                 printf("Error reading\n");
             break;
         }
@@ -628,6 +630,7 @@ int main(int argc, char *argv[])
 							send(new_socket , str, strlen(str) + 1, 0 );
 							read( new_socket , buff, 100);
 							printf("file da chon: %s\n", buff);
+							SendFileToClient(new_socket, buff);
 							break;
 						case DELETE_REQUEST: //request code: 133
 						/* code */

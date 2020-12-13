@@ -231,6 +231,8 @@ void navigation(int sock){
 								break;
 							case 2:
 								sendCode(sock, DOWNLOAD_REQUEST);
+								char recvBuff[1024];
+								memset(recvBuff, '0', sizeof(recvBuff));
 								printf("========================== Available Files ==========================\n");
 								read(sock, buffer, 1000);
 								char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
@@ -238,36 +240,46 @@ void navigation(int sock){
 								int selected_file;
 								printf("Which file do you want to download? (1-%d): ", number_of_available_files);
 								scanf("%d", &selected_file);
+								//send ten file
 								send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+								//nhan size cua file
+								read(sock, buffer, 1000);
+								int size = atoi(buffer);
+								printf("size = %d\n", size);
 								int bytesReceived = 0;
-								char recvBuff[1024];
-								memset(recvBuff, '0', sizeof(recvBuff));
 								FILE *fp;
-								char fname[100];
-								read(sock, fname, 256);
-								//strcat(fname,"AK");
-								printf("File Name: %s\n",fname);
+								
+								char path[100];
+								path[0] = '\0';
+								strcat(path, "./client_source/");
+								strcat(path, available_files[selected_file-1]);
+								printf("File Name: %s\n",path);
 								printf("Receiving file...");
-								fp = fopen("thao.txt", "ab"); 
+								fp = fopen(path, "ab"); 
 								if(NULL == fp)
 								{
 									printf("Error opening file");
 									return 1;
 								}
+								int totalReceived = 0;
 								long double sz=1;
 								/* Receive data in chunks of 256 bytes */
 								while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
-								{ 
-									printf("%s\n", recvBuff);
-									if(strcmp("end", recvBuff) == 0){
-										break;
-									}
+								{
+									totalReceived += bytesReceived;
+									printf("Receive buff: %s", recvBuff);
+									
+									printf("\n\n\nbytes = %d\n",bytesReceived);
 									sz++;
-									printf("Received: %llf Mb",(sz/1024));
+									printf("Received: %llf Mb\n",(sz/1024));
+									printf("dung luong = %d\n", totalReceived);
 									fflush(stdout);
 									// recvBuff[n] = 0;
 									fwrite(recvBuff, 1,bytesReceived,fp);
-									// printf("%s \n", recvBuff);
+
+									if(bytesReceived < 1024){
+										break;
+									}
 								}
 								if(bytesReceived < 0)
 								{

@@ -465,6 +465,7 @@ void* SendFileToClient(int new_socket, char fname[50])
             if (feof(fp))
             {
                 printf("End of file\n");
+				// send(new_socket, "ENDOFFILE", strlen("ENDOFFILE"), 0);
             }
             if (ferror(fp))
                 printf("Error reading\n");

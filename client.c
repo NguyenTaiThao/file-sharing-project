@@ -243,12 +243,16 @@ void navigation(int sock){
 								char recvBuff[1024];
 								memset(recvBuff, '0', sizeof(recvBuff));
 								FILE *fp;
-								char fname[100];
+								char fname[100], path[100];
 								read(sock, fname, 256);
-								system("cd client_source");
-								printf("File Name: %s\n",fname);
+								path[0] = '\0';
+								strcat(path, "./client_source/");
+								strcat(path, fname);
+								// strcpy(fname, path);
+								// system("cd client_source");
+								printf("File Name: %s\n",path);
 								printf("Receiving file...");
-								fp = fopen(fname, "ab"); 
+								fp = fopen(path, "ab"); 
 								if(NULL == fp)
 								{
 									printf("Error opening file");
@@ -258,13 +262,18 @@ void navigation(int sock){
 								/* Receive data in chunks of 256 bytes */
 								while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
 								{ 
+									printf("Receive buff: %s", recvBuff);
+									
 									printf("\n\n\nbytes = %d\n",bytesReceived);
 									sz++;
 									printf("Received: %llf Mb\n",(sz/1024));
 									fflush(stdout);
 									// recvBuff[n] = 0;
 									fwrite(recvBuff, 1,bytesReceived,fp);
-									printf("%s \n", recvBuff);
+
+									if(bytesReceived < 1){
+										break;
+									}
 								}
 								fclose(fp);
 								if(bytesReceived < 0)

@@ -23,7 +23,7 @@ void readGroupFile(singleList *groups){
 	// clear list
 	deleteSingleList(groups);
 	FILE *fp;
-	fp = fopen("group.txt","r");
+	fp = fopen("./storage/group.txt","r");
 	char str_tmp[100];
 	fgets (str_tmp, 100, fp);
 	while (1)
@@ -83,7 +83,7 @@ void readGroupFile(singleList *groups){
 
 void writeToGroupFile(char group_name[50], char owner[50], int number_of_files, int number_of_members, singleList members, singleList files){
 	FILE *fp;
-	fp = fopen("group.txt","a");
+	fp = fopen("./storage/group.txt","a");
 	fprintf(fp,"\n%s", group_name);
 	fprintf(fp,"\n%s", owner);
 	fprintf(fp,"\n%d", number_of_members);
@@ -104,7 +104,7 @@ void writeToGroupFile(char group_name[50], char owner[50], int number_of_files, 
 void readUserFile(singleList* users){
 	char username[50], password[50], group_name[50];
 	int status, count_group;
-	FILE * f = fopen("user.txt","r");
+	FILE * f = fopen("./storage/user.txt","r");
 
 	if(f == NULL)
 	{
@@ -140,7 +140,7 @@ void readFileFile(singleList *files){
 	FILE *fp;
 	char str_tmp[100];
 	str_tmp[0] = '\0';
-	fp = fopen("./file.txt", "r");
+	fp = fopen("./storage/file.txt", "r");
 	if(fp == NULL){
 		fprintf(stderr, "File missing: can not find \"file.txt\".\n");
 		exit(-1);

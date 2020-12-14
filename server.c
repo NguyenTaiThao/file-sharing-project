@@ -16,6 +16,7 @@
 #define BUFF_SIZE 100
 
 int REQUEST;
+singleList groups, files, users;
 
 void readGroupFile(singleList *groups){
 	
@@ -462,7 +463,7 @@ void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info
 	}
 }
 
-void createGroup(int sock, singleList *groups){
+void createGroup(int sock, singleList *groups, user_struct *loginUser){
 	char buff[100], noti[100], cmd[100];
 	read(sock, buff, 100);
 
@@ -477,15 +478,23 @@ void createGroup(int sock, singleList *groups){
 		createSingleList(&files);
 
 		strcpy(group_element->group_name, buff);
+		strcpy(group_element->owner, loginUser->user_name);
+		printf("ownner: %s\n", group_element->owner);
 		group_element->files = files;
 		group_element->members = members;
 		group_element->number_of_files = 0;
 		group_element->number_of_members = 1;
 
 		insertEnd(groups, group_element);
+
+		addMember(*groups, group_element->group_name, loginUser->user_name);
+		
+		addGroupToJoinedGroups(users, loginUser->user_name, group_element->group_name);
+
 		strcpy(cmd, "mkdir ");
-		strcat(cmd, "./files/");
+		strcat(cmd, "./files/\'");
 		strcat(cmd, buff);
+		strcat(cmd, "\'");
 		system(cmd);
 
 		strcpy(noti, "Nhom duoc tao thanh cong.");
@@ -585,7 +594,7 @@ void* SendFileToClient(int new_socket, char fname[50])
 
 void signUp(int sock, singleList *users);
 
-int signIn(int sock, singleList users, user_struct *loginUser);
+int signIn(int sock, singleList users, user_struct **loginUser);
 
 singleList getFilesCanDelete(singleList files, singleList groups, char group_name[], char username[]){
 	singleList files_can_delete, all_files_of_group, all_files_owns;
@@ -738,9 +747,6 @@ int main(int argc, char *argv[])
 	int x;
 	char buff[100];
 
-
-	singleList groups, files, users;
-
 	createSingleList(&groups);
 	createSingleList(&files);
 	createSingleList(&users);
@@ -762,7 +768,7 @@ int main(int argc, char *argv[])
 		case LOGIN_REQUEST:
 			// nhan username va password
 			printf("LOGIN_REQUEST\n");
-			if(signIn(new_socket, users, loginUser) == 1){
+			if(signIn(new_socket, users, &loginUser) == 1){
 				while(REQUEST != LOGOUT_REQUEST){
 					x = read( new_socket , buff, 100);
 					REQUEST = atoi(buff);
@@ -771,7 +777,7 @@ int main(int argc, char *argv[])
 					case CREATE_GROUP_REQUEST: //request code: 11
 						/* code */
 						printf("CREATE_GROUP_REQUEST\n");
-						createGroup(new_socket, &groups);
+						createGroup(new_socket, &groups, loginUser);
 						break;
 					case JOIN_GROUP_REQUEST: //request code: 12
 							printf("UPLOAD_REQUEST\n");
@@ -928,7 +934,7 @@ void signUp(int sock, singleList *users){
 	sendCode(sock, REGISTER_SUCCESS);
 }
 
-int signIn(int sock, singleList users, user_struct *loginUser){
+int signIn(int sock, singleList users, user_struct **loginUser){
 	char buff[BUFF_SIZE], username[50], password[50];
 
 	sendCode(sock, LOGIN_SUCCESS);
@@ -951,8 +957,8 @@ int signIn(int sock, singleList users, user_struct *loginUser){
 	printf("password: %s\n", buff);
 	strcpy(password, buff);
 
-	loginUser = (user_struct*)(findByName(1, users, username));
-	if(strcmp(loginUser->password, password) == 0){
+	*loginUser = (user_struct*)(findByName(1, users, username));
+	if(strcmp((*loginUser)->password, password) == 0){
 		sendCode(sock, LOGIN_SUCCESS);
 		return 1;
 	}

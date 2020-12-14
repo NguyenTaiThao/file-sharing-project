@@ -12,9 +12,9 @@
 #include "communication_code.h"
 #include "linked_list.h"
 
+#define BUFF_SIZE 100
 
 int REQUEST;
-
 
 void readGroupFile(singleList *groups){
 	
@@ -98,7 +98,6 @@ void writeToGroupFile(char group_name[50], char owner[50], int number_of_files, 
 	}
 	fclose(fp);
 }
-
 
 void readUserFile(singleList* users){
 	char username[50], password[50], group_name[50];
@@ -229,6 +228,80 @@ int checkExistence(int type, singleList list, char string[50])
 	}
 }
 
+void* findByName(int type, singleList list, char string[50])
+{
+	// type = 1 find user
+	// type = 2 find group
+	// type = 3 find file
+	switch (type)
+	{
+	case 1:
+		// Check user
+		{
+			int i = 0;
+			list.cur = list.root;
+			while (list.cur != NULL)
+			{
+				i++;
+				if(strcmp(((user_struct*)list.cur->element)->user_name,string) != 0)
+				{
+					list.cur = list.cur->next;
+				}
+				else {
+					return list.cur->element;
+				}
+				
+			}
+			return NULL; 
+		}
+		break;
+	case 2:
+		// Check Group
+		{
+			int i = 0;
+			list.cur = list.root;
+			while (list.cur != NULL)
+			{
+				i++;
+				if(strcmp(((group_struct*)list.cur->element)->group_name,string) != 0)
+				{
+					list.cur = list.cur->next;
+				}
+				else {
+					return list.cur->element;
+				}
+				
+			}
+			return NULL; 
+		}
+		break;
+	case 3:
+		// Check File
+		{
+			int i = 0;
+			list.cur = list.root;
+			while (list.cur != NULL)
+			{
+				i++;
+				if(strcmp(((file_struct*)list.cur->element)->name,string) != 0)
+				{
+					list.cur = list.cur->next;
+				}
+				else {
+					return list.cur->element;
+				}
+				
+			}
+			return NULL; 
+		}
+		break;
+
+	default:
+		printf("Type chua hop le !! (1,2 or 3)\n");
+		break;
+	}
+}
+
 int addMember(singleList groups, char group_name[50], char username[50]){
 	singleList members;
 	createSingleList(&members);
@@ -303,7 +376,6 @@ singleList unJoinedGroups(singleList groups, singleList users, char username[50]
 	}
 	return un_joined_groups;
 }
-
 
 void convertSimpleGroupsToString(singleList simple_group, char str[1000]){
 	str[0] = '\0';
@@ -433,8 +505,6 @@ singleList getAllFilesOfGroup(singleList groups, char group_name[50]){
 	return files;
 }
 
-
-
 void* SendFileToClient(int new_socket, char fname[50])
 {
     write(new_socket, fname,256);
@@ -474,6 +544,9 @@ void* SendFileToClient(int new_socket, char fname[50])
     }
 }
 
+void signUp(int sock, singleList *users);
+
+int signIn(int sock, singleList users, user_struct *loginUser);
 
 
 int main(int argc, char *argv[]) 
@@ -542,122 +615,113 @@ int main(int argc, char *argv[])
 	readFileFile(&files);
 	readUserFile(&users);
 	
-
-	
-
-	// read(new_socket, buff, 100);
-	// if(strcasecmp(buff, "senddeem")==0){
-	// 	SendFileToClient(new_socket, "group.txt");
-	// }
-
-
-	
-	// printf("%s\n", buff);
-	// send(new_socket , "123", 4 , 0 );
-	
-	
 	while(1){
+		user_struct *loginUser = NULL;
         x = read( new_socket , buff, 100);
 		REQUEST = atoi(buff);
 		switch (REQUEST)
 		{
 		case REGISTER_REQUEST:
 			printf("REGISTER_REQUEST\n");
-			/* code */
+			signUp(new_socket, &users);
 			break;
 		case LOGIN_REQUEST:
 			// nhan username va password
 			printf("LOGIN_REQUEST\n");
-			while(REQUEST != LOGOUT_REQUEST){
-				x = read( new_socket , buff, 100);
-				REQUEST = atoi(buff);
-				switch (REQUEST)
-				{
-				case CREATE_GROUP_REQUEST: //request code: 11
-					/* code */
-					printf("CREATE_GROUP_REQUEST\n");
-					createGroup(new_socket, &groups);
-					break;
-				case JOIN_GROUP_REQUEST: //request code: 12
-					/* code */
-					printf("JOIN_GROUP_REQUEST\n");
-					singleList un_joined_group;
-					createSingleList(&un_joined_group);
-					un_joined_group = unJoinedGroups(groups, users, "trung2");
-					char str[200];
-					convertSimpleGroupsToString(un_joined_group, str);
-					send(new_socket , str, strlen(str) + 1, 0 );
+			if(signIn(new_socket, users, loginUser) == 1){
+				while(REQUEST != LOGOUT_REQUEST){
 					x = read( new_socket , buff, 100);
-					printf("nhom da chon: %s\n", buff);
-					if(addMember(groups, buff, "trung2") + addGroupToJoinedGroups(users, "trung2", buff) == 2){
-						sendCode(new_socket , JOIN_GROUP_SUCCESS);
-					}else{
-						send(new_socket , "something wrong", 16, 0 );
-					}
-					break;
-				case ACCESS_GROUP_REQUEST: //request code: 13
-					printf("ACCESS_GROUP_REQUEST\n");
-					singleList joined_group;
-					createSingleList(&joined_group);
-					joined_group = joinedGroups(users, "thao1");
-					convertSimpleGroupsToString(joined_group, str);
-					send(new_socket , str, strlen(str) + 1, 0 );
-					read( new_socket , buff, 100);
-					printf("nhom da chon: %s\n", buff);
-					char current_group[50];
-					strcpy(current_group, buff);
-					sendCode(new_socket, ACCESS_GROUP_SUCCESS);
-					while(REQUEST != BACK_REQUEST){
-						read( new_socket , buff, 100);
-						REQUEST = atoi(buff);
-						switch (REQUEST)
-						{
-						case UPLOAD_REQUEST: //request code: 131
+					REQUEST = atoi(buff);
+					switch (REQUEST)
+					{
+					case CREATE_GROUP_REQUEST: //request code: 11
 						/* code */
-						printf("UPLOAD_REQUEST\n");
+						printf("CREATE_GROUP_REQUEST\n");
+						createGroup(new_socket, &groups);
 						break;
-						case DOWNLOAD_REQUEST: //request code: 132
+					case JOIN_GROUP_REQUEST: //request code: 12
 						/* code */
-							printf("DOWNLOAD_REQUEST\n");
-							singleList all_files;
-							createSingleList(&all_files);
-							all_files = getAllFilesOfGroup(groups, current_group);
-							convertSimpleFilesToString(all_files, str);
-							send(new_socket , str, strlen(str) + 1, 0 );
-							read( new_socket , buff, 100);
-							printf("file da chon: %s\n", buff);
-							SendFileToClient(new_socket, buff);
-							break;
-						case DELETE_REQUEST: //request code: 133
-						/* code */
-						printf("DELETE_REQUEST\n");
-						break;
-						case VIEW_FILES_REQUEST: //request code: 134
-						/* code */
-							printf("VIEW_FILES_REQUEST\n");
-							all_files = getAllFilesOfGroup(groups, current_group);
-							convertSimpleFilesToString(all_files, str);
-							send(new_socket , str, strlen(str) + 1, 0 );
-						break;
-						case BACK_REQUEST: //request code: 135
-						/* code */
-						printf("BACK_REQUEST\n");
-						break;
-						
-						default:
-							break;
+						printf("JOIN_GROUP_REQUEST\n");
+						singleList un_joined_group;
+						createSingleList(&un_joined_group);
+						un_joined_group = unJoinedGroups(groups, users, "trung2");
+						char str[200];
+						convertSimpleGroupsToString(un_joined_group, str);
+						send(new_socket , str, strlen(str) + 1, 0 );
+						x = read( new_socket , buff, 100);
+						printf("nhom da chon: %s\n", buff);
+						if(addMember(groups, buff, "trung2") + addGroupToJoinedGroups(users, "trung2", buff) == 2){
+							sendCode(new_socket , JOIN_GROUP_SUCCESS);
+						}else{
+							send(new_socket , "something wrong", 16, 0 );
 						}
-					}
-					/* code */
-					break;
-				case LOGOUT_REQUEST: //request code: 14
-					/* code */
-					printf("LOGOUT_REQUEST\n");
-					break;
+						break;
+					case ACCESS_GROUP_REQUEST: //request code: 13
+						printf("ACCESS_GROUP_REQUEST\n");
+						singleList joined_group;
+						createSingleList(&joined_group);
+						joined_group = joinedGroups(users, "thao1");
+						convertSimpleGroupsToString(joined_group, str);
+						send(new_socket , str, strlen(str) + 1, 0 );
+						read( new_socket , buff, 100);
+						printf("nhom da chon: %s\n", buff);
+						char current_group[50];
+						strcpy(current_group, buff);
+						sendCode(new_socket, ACCESS_GROUP_SUCCESS);
+						while(REQUEST != BACK_REQUEST){
+							read( new_socket , buff, 100);
+							REQUEST = atoi(buff);
+							switch (REQUEST)
+							{
+							case UPLOAD_REQUEST: //request code: 131
+							/* code */
+							printf("UPLOAD_REQUEST\n");
+							break;
+							case DOWNLOAD_REQUEST: //request code: 132
+							/* code */
+								printf("DOWNLOAD_REQUEST\n");
+								singleList all_files;
+								createSingleList(&all_files);
+								all_files = getAllFilesOfGroup(groups, current_group);
+								convertSimpleFilesToString(all_files, str);
+								send(new_socket , str, strlen(str) + 1, 0 );
+								read( new_socket , buff, 100);
+								printf("file da chon: %s\n", buff);
+								SendFileToClient(new_socket, buff);
+								break;
+							case DELETE_REQUEST: //request code: 133
+							/* code */
+							printf("DELETE_REQUEST\n");
+							break;
+							case VIEW_FILES_REQUEST: //request code: 134
+							/* code */
+								printf("VIEW_FILES_REQUEST\n");
+								all_files = getAllFilesOfGroup(groups, current_group);
+								convertSimpleFilesToString(all_files, str);
+								send(new_socket , str, strlen(str) + 1, 0 );
+							break;
+							case BACK_REQUEST: //request code: 135
+							/* code */
+							printf("BACK_REQUEST\n");
+							break;
+							
+							default:
+								break;
+							}
+						}
+						/* code */
+						break;
+					case LOGOUT_REQUEST: //request code: 14
+						/* code */
+						printf("LOGOUT_REQUEST\n");
+						break;
 
-				default:
-					break;
+					default:
+						break;
+					}
 				}
+			}else{
+				printf("no way\n");
 			}
 			break;
 		default:
@@ -668,3 +732,77 @@ int main(int argc, char *argv[])
     }
 	return 0; 
 } 
+
+void signUp(int sock, singleList *users){
+	char buff[BUFF_SIZE], username[50], password[50];
+	int size;
+	sendCode(sock, REGISTER_SUCCESS);
+
+	while(1){
+		size = read(sock, buff, BUFF_SIZE);
+
+		strcpy(username, buff);
+		username[strlen(username) - 1] = '\0';
+		if(username[strlen(username) - 2] == '\n'){
+			username[strlen(username) - 2] = '\0';
+		}
+		printf("username: \'%s\'\n", username);
+		if(checkExistence(1, *users, username) == 1){
+			sendCode(sock, EXISTENCE_USERNAME);
+		}else{
+			sendCode(sock, REGISTER_SUCCESS);
+			break;
+		}
+	}
+	singleList groups;
+	createSingleList(&groups);
+
+	read(sock, buff, BUFF_SIZE);
+	buff[strlen(buff) - 1] = '\0';
+	if(buff[strlen(buff) - 2] == '\n'){
+		buff[strlen(buff) - 2] = '\0';
+	}
+	printf("password: %s\n", buff);
+	strcpy(password, buff);
+	user_struct *user = (user_struct*)malloc(sizeof(user_struct));
+	strcpy(user->user_name, username);
+	strcpy(user->password, password);
+	user->count_group = 0;
+	user->status = 1;
+	user->joined_groups = groups;
+	insertEnd(users, user);
+
+	sendCode(sock, REGISTER_SUCCESS);
+}
+
+int signIn(int sock, singleList users, user_struct *loginUser){
+	char buff[BUFF_SIZE], username[50], password[50];
+
+	sendCode(sock, LOGIN_SUCCESS);
+
+	while(1){
+		read(sock, buff, BUFF_SIZE);
+		buff[strlen(buff) - 1] = '\0';
+		printf("username: %s\n", buff);
+
+		strcpy(username, buff);
+		if(checkExistence(1, users, username) == 1){
+			sendCode(sock, LOGIN_SUCCESS);
+			break;
+		}else{
+			sendCode(sock, NON_EXISTENCE_USERNAME);
+		}
+	}
+	read(sock, buff, BUFF_SIZE);
+	buff[strlen(buff) - 1] = '\0';
+	printf("password: %s\n", buff);
+	strcpy(password, buff);
+
+	loginUser = (user_struct*)(findByName(1, users, username));
+	if(strcmp(loginUser->password, password) == 0){
+		sendCode(sock, LOGIN_SUCCESS);
+		return 1;
+	}
+	sendCode(sock, INCORRECT_PASSWORD);
+	return 0;
+}

@@ -9,6 +9,7 @@
 #include <arpa/inet.h> 
 #include <netdb.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include "communication_code.h"
 #include "linked_list.h"
 
@@ -135,23 +136,46 @@ void readUserFile(singleList* users){
 }
 
 void readFileFile(singleList *files){
-	FILE *f;
-	char name[50], owner[50], uploaded_at[50];
-	int download_times;
-
-	f = fopen("./file.txt", "r");
-	if(f == NULL){
+	FILE *fp;
+	char str_tmp[100];
+	str_tmp[0] = '\0';
+	fp = fopen("./file.txt", "r");
+	if(fp == NULL){
 		fprintf(stderr, "File missing: can not find \"file.txt\".\n");
 		exit(-1);
 	}
 
-	while(fscanf(f, "%s %s %s %d\n", name, owner, uploaded_at, &download_times)>0){
+	while(1){
 		file_struct *file = (file_struct*)malloc(sizeof(file_struct));
-		strcpy(file->name, name);
-		strcpy(file->owner,owner);
-		strcpy(file->uploaded_at, uploaded_at);
+		// name
+		fgets (str_tmp, 100, fp);
+		str_tmp[strlen(str_tmp)-1] = '\0';
+		strcpy(file->name, str_tmp);
+		// owner
+		fgets (str_tmp, 100, fp);
+		str_tmp[strlen(str_tmp)-1] = '\0';
+		strcpy(file->owner, str_tmp);
+		// group
+		fgets (str_tmp, 100, fp);
+		str_tmp[strlen(str_tmp)-1] = '\0';
+		strcpy(file->group, str_tmp);
+		// uploaded
+		fgets (str_tmp, 100, fp);
+		str_tmp[strlen(str_tmp)-1] = '\0';
+		strcpy(file->uploaded_at, str_tmp);
+		fgets (str_tmp, 100, fp);
+		if(str_tmp[strlen(str_tmp)-1] == '\n'){
+			str_tmp[strlen(str_tmp)-1] = '\0';
+		}
+		file->downloaded_times = atoi(str_tmp);
 		insertEnd(files, file);
+		char c = fgetc(fp);
+    	if (c != EOF){
+			int res = fseek( fp, -1, SEEK_CUR );
+		}else
+        	break;
 	}
+	printFiles(*files);
 }
 
 int checkExistence(int type, singleList list, char string[50])
@@ -505,6 +529,22 @@ singleList getAllFilesOfGroup(singleList groups, char group_name[50]){
 	return files;
 }
 
+singleList getFilesOwns(singleList files, char username[50]){
+	singleList files_owns;
+	createSingleList(&files_owns);
+	files.cur = files.root;
+	while (files.cur != NULL)
+	{
+		if(strcmp(  ((file_struct*)files.cur->element)->owner, username) == 0){
+			simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+			strcpy(file_element->file_name, ((file_struct*)files.cur->element)->name);
+			insertEnd(&files_owns, file_element);
+		}
+		files.cur = files.cur->next;
+	}
+	return files_owns;
+}
+
 void* SendFileToClient(int new_socket, char fname[50])
 {
     write(new_socket, fname,256);
@@ -513,7 +553,6 @@ void* SendFileToClient(int new_socket, char fname[50])
     if(fp==NULL)
     {
         printf("File opern error");
-        return 1;   
     }   
 
     /* Read data from file and send it */
@@ -548,6 +587,101 @@ void signUp(int sock, singleList *users);
 
 int signIn(int sock, singleList users, user_struct *loginUser);
 
+singleList getFilesCanDelete(singleList files, singleList groups, char group_name[], char username[]){
+	singleList files_can_delete, all_files_of_group, all_files_owns;
+	createSingleList(&files_can_delete); //file ma nguoi dung co the xoa
+	createSingleList(&all_files_of_group); //tat ca file trong group
+	createSingleList(&all_files_owns); //tat ca file nguoi dung so huu
+	groups.cur = groups.root;
+	while (groups.cur != NULL)
+	{
+		if( strcmp( ((group_struct*)groups.cur->element)->group_name, group_name ) == 0){
+			if( strcmp( ((group_struct*)groups.cur->element)->owner, username ) == 0){
+				return ((group_struct*)groups.cur->element)->files;
+			}else{
+				all_files_of_group = getAllFilesOfGroup(groups, group_name);
+				all_files_owns = getFilesOwns(files, username);
+				all_files_of_group.cur = all_files_of_group.root;
+				while (all_files_of_group.cur != NULL)	
+				{
+					all_files_owns.cur = all_files_owns.root;
+					while (all_files_owns.cur != NULL)	
+					{
+						if( strcmp( ((simple_file_struct*)all_files_owns.cur->element)->file_name, ((simple_file_struct*)all_files_of_group.cur->element)->file_name) == 0){
+							simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+							strcpy(file_element->file_name, ((simple_file_struct*)all_files_owns.cur->element)->file_name);
+							insertEnd(&files_can_delete, file_element);
+						}
+						all_files_owns.cur = all_files_owns.cur->next;
+					}
+					all_files_of_group.cur = all_files_of_group.cur->next;
+				}
+			}
+			break;
+			
+		}
+		groups.cur = groups.cur->next;
+	}
+	
+	return files_can_delete;
+}
+
+
+void deleteFile(singleList *files, singleList groups, char group_name[], char file_name[50]){
+	//delete file in singleList files
+	if( strcmp( ((file_struct*)(*files).root->element)->name, file_name) == 0){
+		deleteBegin(files);
+	}else{
+		(*files).cur = (*files).prev = (*files).root;
+		while ((*files).cur != NULL && strcmp( ((file_struct*)(*files).cur->element)->name, file_name) != 0)
+		{
+			(*files).prev = (*files).cur;
+            (*files).cur = (*files).cur->next;
+		}
+		node *newNode = (*files).cur;
+		(*files).prev->next = (*files).cur->next;
+		(*files).cur = (*files).prev;
+		free(newNode);
+	}
+	//delete file in singleList groups
+	singleList *files_of_group;
+	*files_of_group = getAllFilesOfGroup(groups, group_name);
+	printFile((*files_of_group));
+	if( strcmp( ((simple_file_struct*)(*files_of_group).root->element)->file_name, file_name) == 0){
+		deleteBegin(files_of_group);
+	}else{
+		(*files_of_group).cur = (*files_of_group).prev = (*files_of_group).root;
+		while ((*files_of_group).cur != NULL && strcmp( ((simple_file_struct*)(*files_of_group).cur->element)->file_name, file_name) != 0)
+		{
+			(*files_of_group).prev = (*files_of_group).cur;
+            (*files_of_group).cur = (*files_of_group).cur->next;
+		}
+		(*files_of_group).prev->next = (*files_of_group).cur->next;
+		(*files_of_group).cur = (*files_of_group).prev;
+	}
+}
+
+int isFileExistInGroup(singleList groups, char group_name[], char file_name[]){
+	groups.cur = groups.root;
+	while(groups.cur != NULL){
+		if( strcmp( ((group_struct*)groups.cur->element)->group_name, group_name) == 0){
+			singleList files;
+			createSingleList(&files);
+			files = ((group_struct*)groups.cur->element)->files;
+			files.cur = files.root;
+			while (files.cur != NULL)
+			{
+				if( strcmp( ((simple_file_struct*)files.cur->element)->file_name, file_name) == 0){
+					return 1;
+				}
+				files.cur = files.cur->next;
+			}
+			break; 
+		}
+		groups.cur = groups.cur->next;
+	}
+	return 0;
+}
 
 int main(int argc, char *argv[]) 
 {
@@ -595,7 +729,7 @@ int main(int argc, char *argv[])
 	{ 
 		perror("accept"); 
 		exit(EXIT_FAILURE); 
-	} 
+	}
 
 
 
@@ -640,6 +774,14 @@ int main(int argc, char *argv[])
 						createGroup(new_socket, &groups);
 						break;
 					case JOIN_GROUP_REQUEST: //request code: 12
+							printf("UPLOAD_REQUEST\n");
+							if( isFileExistInGroup(groups, "group2", "file.txt") == 0){
+								printf("khong ton tai\n");
+							}else{
+								printf("ton tai\n");
+							}
+							break;
+						case DOWNLOAD_REQUEST: //request code: 132
 						/* code */
 						printf("JOIN_GROUP_REQUEST\n");
 						singleList un_joined_group;
@@ -689,25 +831,36 @@ int main(int argc, char *argv[])
 								printf("file da chon: %s\n", buff);
 								SendFileToClient(new_socket, buff);
 								break;
-							case DELETE_REQUEST: //request code: 133
+						case DELETE_REQUEST: //request code: 133
 							/* code */
 							printf("DELETE_REQUEST\n");
+							singleList files_can_delete;
+							createSingleList(&files_can_delete);
+							files_can_delete = getFilesCanDelete(files, groups, "group3" ,"dung");
+							convertSimpleFilesToString(files_can_delete, str);
+							send(new_socket , str, strlen(str) + 1, 0 );
+							read( new_socket , buff, 100);
+							printf("file da chon: %s\n", buff);
+							deleteFile(&files, groups, "group3", "file7.txt");
+							singleList test;
+							createSingleList(&test);
+							test = getAllFilesOfGroup(groups, "group3");
+							printFile(test);
 							break;
-							case VIEW_FILES_REQUEST: //request code: 134
-							/* code */
-								printf("VIEW_FILES_REQUEST\n");
-								all_files = getAllFilesOfGroup(groups, current_group);
-								convertSimpleFilesToString(all_files, str);
-								send(new_socket , str, strlen(str) + 1, 0 );
+						case VIEW_FILES_REQUEST: //request code: 134
+						/* code */
+							printf("VIEW_FILES_REQUEST\n");
+							all_files = getAllFilesOfGroup(groups, current_group);
+							convertSimpleFilesToString(all_files, str);
+							send(new_socket , str, strlen(str) + 1, 0 );
 							break;
-							case BACK_REQUEST: //request code: 135
-							/* code */
-							printf("BACK_REQUEST\n");
+						case BACK_REQUEST: //request code: 135
+						/* code */
+						printf("BACK_REQUEST\n");
 							break;
-							
-							default:
-								break;
-							}
+						default:
+							break;
+						}
 						}
 						/* code */
 						break;

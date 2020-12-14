@@ -1,0 +1,94 @@
+do {
+				sendCode(sock, LOGIN_REQUEST);
+
+				z2 = menu2();
+				switch (z2)
+				{
+				case 1:
+					sendCode(sock, CREATE_GROUP_REQUEST);
+					createGroup(sock);
+					break;
+				case 2:
+					printf("========================== Available Group ==========================\n");
+					sendCode(sock, JOIN_GROUP_REQUEST);
+					read(sock, buffer, 1000); 
+					char available_group[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+					int number_of_available_groups = printAvailableElements(buffer, available_group);
+					int selected_group;
+					printf("Which group do you want to join? (1-%d): ", number_of_available_groups);
+					scanf("%d", &selected_group);
+					send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 ); 
+					read(sock, buffer, 1000);
+					if(atoi(buffer) == JOIN_GROUP_SUCCESS){
+						printf("Join successfully\n");
+					}else{
+						printf("Something wrong!!!\n");
+					}
+					break;
+				case 3:
+					printf("==================== Available Group ====================\n");
+					sendCode(sock, ACCESS_GROUP_REQUEST);
+					read(sock, buffer, 1000);
+					number_of_available_groups = printAvailableElements(buffer, available_group);
+					printf("Which group do you want to access? (1-%d): ", number_of_available_groups);
+					scanf("%d", &selected_group);
+					send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 );
+					read(sock, buffer, 1000);
+					if(atoi(buffer) == ACCESS_GROUP_SUCCESS){
+						printf(" => Access %s successfully\n", available_group[selected_group-1]);
+					}else{
+						printf("Something wrong!!!\n");
+					}
+					z3 = 0;
+					while(z3 != 5){
+						z3 = menu3(available_group[selected_group-1]);
+						switch (z3)
+						{
+							case 1:
+								sendCode(sock, UPLOAD_REQUEST);
+								break;
+							case 2:
+								sendCode(sock, DOWNLOAD_REQUEST);
+								printf("==================== Available Files =====================\n");
+								read(sock, buffer, 1000);
+								char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+								int number_of_available_files = printAvailableElements(buffer, available_files);
+								int selected_file;
+								printf("Which file do you want to download? (1-%d): ", number_of_available_files);
+								scanf("%d", &selected_file);
+								send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+								if(receiveFile(sock) == 1){
+									printf("Open the file? (Y/n): ");
+									char choice[10], command[100];
+									scanf("%s", choice);
+									if(strcmp(choice, "Y") == 0){
+										command[0] = '\0';
+										strcat(command, "xdg-open ./client_source/");
+										strcat(command, available_files[selected_file-1]);
+										system(command);
+									}
+								}
+								break;
+							case 3:
+								sendCode(sock, DELETE_REQUEST);
+								printf("==================== Available Files =====================\n");
+								read(sock, buffer, 1000); 
+								number_of_available_files = printAvailableElements(buffer, available_files);
+								printf("Which file do you want to delete? (1-%d): ", number_of_available_files);
+								scanf("%d", &selected_file);
+								send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+								break;
+							case 4:
+								printf("======================= All Files ========================\n");
+								sendCode(sock, VIEW_FILES_REQUEST);
+								read(sock, buffer, 1000); 
+								number_of_available_files = printAvailableElements(buffer, available_files);
+								break;
+							case 5:
+								sendCode(sock, BACK_REQUEST);
+								z3 = 5;
+								break;
+							default:
+								break;
+>>>>>>> a820f036c945e0cf8fd429fcc29e4f596373ba86
+						}

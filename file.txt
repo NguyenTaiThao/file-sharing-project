@@ -1,4 +1,40 @@
-file1.txt thao1 20-12-2020 9
-file2.txt trung1 20-12-2020 2
-file3.txt dung1 20-1-2020 10
-file4.txt dung1 20-1-2020 11
+file1.txt
+thao1
+anh ey em
+20-12-2020 123
+9
+fil e2.txt
+trung1
+group2
+20-12-2020
+2
+file6.txt
+trung2
+group1
+20-12-2020
+2
+file7.txt
+trung2
+group3
+20-12-2020
+2
+file8.txt
+trung1
+group1
+20-12-2020
+2
+file3.txt
+dung1
+group5
+20-1-2020
+10
+file4.txt
+dung1
+group2
+20-1-2020
+11
+file5.txt
+dung1
+group1
+20-1-2020
+12

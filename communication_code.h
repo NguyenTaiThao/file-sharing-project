@@ -22,6 +22,7 @@
 #define JOIN_GROUP_SUCCESS 804
 #define ACCESS_GROUP_SUCCESS 805
 #define LOGOUT_SUCCESS 806
+#define UPLOAD_SUCCESS 807
 //==================================================//
 
 #define INCORRECT_PASSWORD 900

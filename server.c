@@ -636,7 +636,6 @@ singleList getFilesCanDelete(singleList files, singleList groups, char group_nam
 	return files_can_delete;
 }
 
-
 void deleteFile(singleList *files, singleList groups, char group_name[], char file_name[50]){
 	//delete file in singleList files
 	if( strcmp( ((file_struct*)(*files).root->element)->name, file_name) == 0){
@@ -692,6 +691,10 @@ int isFileExistInGroup(singleList groups, char group_name[], char file_name[]){
 	}
 	return 0;
 }
+
+void uploadFile(int sock);
+
+int receiveUploadedFile(int sock, char filePath[100]);
 
 int main(int argc, char *argv[]) 
 {
@@ -788,7 +791,7 @@ int main(int argc, char *argv[])
 								printf("ton tai\n");
 							}
 							break;
-						case DOWNLOAD_REQUEST: //request code: 132
+					case DOWNLOAD_REQUEST: //request code: 132
 						/* code */
 						printf("JOIN_GROUP_REQUEST\n");
 						singleList un_joined_group;
@@ -820,54 +823,53 @@ int main(int argc, char *argv[])
 						while(REQUEST != BACK_REQUEST){
 							read( new_socket , buff, 100);
 							REQUEST = atoi(buff);
+
 							switch (REQUEST)
 							{
-							case UPLOAD_REQUEST: //request code: 131
-							/* code */
-							printf("UPLOAD_REQUEST\n");
-							break;
-							case DOWNLOAD_REQUEST: //request code: 132
-							/* code */
-								printf("DOWNLOAD_REQUEST\n");
-								singleList all_files;
-								createSingleList(&all_files);
-								all_files = getAllFilesOfGroup(groups, current_group);
-								convertSimpleFilesToString(all_files, str);
-								send(new_socket , str, strlen(str) + 1, 0 );
-								read( new_socket , buff, 100);
-								printf("file da chon: %s\n", buff);
-								SendFileToClient(new_socket, buff);
-								break;
-						case DELETE_REQUEST: //request code: 133
-							/* code */
-							printf("DELETE_REQUEST\n");
-							singleList files_can_delete;
-							createSingleList(&files_can_delete);
-							files_can_delete = getFilesCanDelete(files, groups, "group3" ,"dung");
-							convertSimpleFilesToString(files_can_delete, str);
-							send(new_socket , str, strlen(str) + 1, 0 );
-							read( new_socket , buff, 100);
-							printf("file da chon: %s\n", buff);
-							deleteFile(&files, groups, "group3", "file7.txt");
-							singleList test;
-							createSingleList(&test);
-							test = getAllFilesOfGroup(groups, "group3");
-							printFile(test);
-							break;
-						case VIEW_FILES_REQUEST: //request code: 134
-						/* code */
-							printf("VIEW_FILES_REQUEST\n");
-							all_files = getAllFilesOfGroup(groups, current_group);
-							convertSimpleFilesToString(all_files, str);
-							send(new_socket , str, strlen(str) + 1, 0 );
-							break;
-						case BACK_REQUEST: //request code: 135
-						/* code */
-						printf("BACK_REQUEST\n");
-							break;
-						default:
-							break;
-						}
+								case UPLOAD_REQUEST: //request code: 131
+									printf("UPLOAD_REQUEST\n");
+									uploadFile(new_socket);
+									break;
+								case DOWNLOAD_REQUEST: //request code: 132
+									printf("DOWNLOAD_REQUEST\n");
+									singleList all_files;
+									createSingleList(&all_files);
+									all_files = getAllFilesOfGroup(groups, current_group);
+									convertSimpleFilesToString(all_files, str);
+									send(new_socket , str, strlen(str) + 1, 0 );
+									read( new_socket , buff, 100);
+									printf("file da chon: %s\n", buff);
+									SendFileToClient(new_socket, buff);
+									break;
+								case DELETE_REQUEST: //request code: 133
+									printf("DELETE_REQUEST\n");
+									singleList files_can_delete;
+									createSingleList(&files_can_delete);
+									files_can_delete = getFilesCanDelete(files, groups, "group3" ,"dung");
+									convertSimpleFilesToString(files_can_delete, str);
+									send(new_socket , str, strlen(str) + 1, 0 );
+									read( new_socket , buff, 100);
+									printf("file da chon: %s\n", buff);
+									deleteFile(&files, groups, "group3", "file7.txt");
+									singleList test;
+									createSingleList(&test);
+									test = getAllFilesOfGroup(groups, "group3");
+									printFile(test);
+									break;
+								case VIEW_FILES_REQUEST: //request code: 134
+								/* code */
+									printf("VIEW_FILES_REQUEST\n");
+									all_files = getAllFilesOfGroup(groups, current_group);
+									convertSimpleFilesToString(all_files, str);
+									send(new_socket , str, strlen(str) + 1, 0 );
+									break;
+								case BACK_REQUEST: //request code: 135
+								/* code */
+								printf("BACK_REQUEST\n");
+									break;
+								default:
+									break;
+							}
 						}
 						break;
 					case LOGOUT_REQUEST: //request code: 14
@@ -963,4 +965,67 @@ int signIn(int sock, singleList users, user_struct **loginUser){
 	}
 	sendCode(sock, INCORRECT_PASSWORD);
 	return 0;
+}
+
+void uploadFile(int sock){
+	char buff[50], filePath[100], group_name[50], file_name[50];
+
+	sendCode(sock, UPLOAD_SUCCESS);
+
+	read(sock, buff, BUFF_SIZE);
+	strcpy(group_name, buff);
+
+	read(sock, buff, BUFF_SIZE);
+	buff[strlen(buff) - 1] = '\0';
+	strcpy(file_name, buff);
+
+	filePath[0] = '\0';
+	strcat(filePath, "./files/");
+	strcat(filePath, group_name);
+	strcat(filePath, "/");
+	strcat(filePath, file_name);
+
+	receiveUploadedFile(sock, filePath);
+}
+
+int receiveUploadedFile(int sock, char filePath[100]){
+	int bytesReceived = 0;
+	char recvBuff[1024], fname[100], path[100];
+	FILE *fp;
+
+	printf("Receiving file...\n");
+
+	printf("Uploaded file: %s\n", filePath);
+	fp = fopen(filePath, "ab"); 
+	if(NULL == fp)
+	{
+		printf("Error opening file");
+		return -1;
+	}
+	
+	double sz=1;
+	/* Receive data in chunks of 256 bytes */
+	while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
+	{ 
+		printf("Receive buff: %s", recvBuff);
+		
+		printf("\n\n\nbytes = %d\n",bytesReceived);
+		sz++;
+		printf("Received: %lf Mb\n",(sz/1024));
+		fflush(stdout);
+		// recvBuff[n] = 0;
+		fwrite(recvBuff, 1,bytesReceived,fp);
+
+		if(bytesReceived < 1024){
+			break;
+		}
+	}
+	fclose(fp);
+	if(bytesReceived < 0)
+	{
+		printf("\n Read Error \n");
+		return 0;
+	}
+	printf("\nFile OK....Completed\n");
+	return 1;
 }

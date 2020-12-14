@@ -80,8 +80,8 @@ void navigation(int sock);
 void signUp(int sock);
 int signIn(int sock);
 void createGroup(int sock);
+void uploadFile(int sock, char groupName[50]);
 void sendCode(int sock, int code);
-void receiveResponse(int my_sock);
 void clearBuff();
 
 int main(int argc, char *argv[]) 
@@ -369,9 +369,10 @@ void navigation(int sock){
 							z3 = menu3(available_group[selected_group-1]);
 							switch (z3)
 							{
-								case 1:
-									sendCode(sock, UPLOAD_REQUEST);
+								case 1:{
+									uploadFile(sock, available_group[selected_group-1]);
 									break;
+								}
 								case 2:
 									sendCode(sock, DOWNLOAD_REQUEST);
 									printf("==================== Available Files =====================\n");
@@ -447,7 +448,6 @@ void createGroup(int sock){
 	fgets(group_name, 50, stdin);
 	group_name[strlen(group_name) - 1] = '\0';
 	send(sock, group_name, strlen(group_name) + 1, 0);
-	receiveResponse(sock);
 }
 
 void sendCode(int sock, int code){
@@ -456,21 +456,70 @@ void sendCode(int sock, int code){
 	send(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
 }
 
-void receiveResponse(int my_sock){
-	// while(1) {
-        // int sockfd = *((int *)my_sock);
-		char data[1024];
-        int n;
-        if((n = recv(my_sock, data, BUFF_SIZE, 0)) == 0) {
-            perror("The server terminated prematurely");
-            exit(4);
-        }
-		data[n] = '\0';
-		printf("%s\n",data);
-	// }
-}
-
 void clearBuff(){
 	char c;
 	while ((c = getchar()) != '\n' && c != EOF) { }
+}
+
+void* SendFileToServer(int new_socket, char fname[50])
+{
+    write(new_socket, fname,256);
+
+    FILE *fp = fopen(fname,"rb");
+    if(fp==NULL)
+    {
+        printf("File open error");
+    }   
+
+    /* Read data from file and send it */
+    while(1)
+    {
+        /* First read file in chunks of 256 bytes */
+        unsigned char buff[1024]={0};
+        int nread = fread(buff,1,1024,fp);
+        //printf("Bytes read %d \n", nread);        
+
+        /* If read was success, send data. */
+        if(nread > 0)
+        {
+            write(new_socket, buff, nread);
+        }
+        if (nread < 1024)
+        {
+            if (feof(fp))
+            {
+                printf("End of file\n");
+            }
+            if (ferror(fp))
+                printf("Error reading\n");
+            break;
+        }
+    }
+}
+
+void uploadFile(int sock, char groupName[50]){
+	char fileName[50], filePath[100];
+	char buffer[BUFF_SIZE];
+
+	sendCode(sock, UPLOAD_REQUEST);
+	read(sock, buffer, BUFF_SIZE);
+
+	if(atoi(buffer) == UPLOAD_SUCCESS){
+		send(sock, groupName, sizeof(groupName), 0);
+
+		printf("Nhap ten file: ");
+		clearBuff();
+		fgets(fileName, 50, stdin);
+		send(sock, fileName, sizeof(fileName), 0);
+
+		printf("Nhap duong dan toi file: ");
+		fgets(filePath, 100, stdin);
+		filePath[strlen(filePath) - 1] = '\0';
+
+		printf("path: %s\n", filePath);
+		SendFileToServer(sock, filePath);
+
+	}else{
+		printf("He thong dang bao tri!!\n");
+	}
 }

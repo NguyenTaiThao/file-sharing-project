@@ -137,23 +137,46 @@ void readUserFile(singleList* users){
 }
 
 void readFileFile(singleList *files){
-	FILE *f;
-	char name[50], owner[50], uploaded_at[50];
-	int download_times;
-
-	f = fopen("./file.txt", "r");
-	if(f == NULL){
+	FILE *fp;
+	char str_tmp[100];
+	str_tmp[0] = '\0';
+	fp = fopen("./file.txt", "r");
+	if(fp == NULL){
 		fprintf(stderr, "File missing: can not find \"file.txt\".\n");
 		exit(-1);
 	}
 
-	while(fscanf(f, "%s %s %s %d\n", name, owner, uploaded_at, &download_times)>0){
+	while(1){
 		file_struct *file = (file_struct*)malloc(sizeof(file_struct));
-		strcpy(file->name, name);
-		strcpy(file->owner,owner);
-		strcpy(file->uploaded_at, uploaded_at);
+		// name
+		fgets (str_tmp, 100, fp);
+		str_tmp[strlen(str_tmp)-1] = '\0';
+		strcpy(file->name, str_tmp);
+		// owner
+		fgets (str_tmp, 100, fp);
+		str_tmp[strlen(str_tmp)-1] = '\0';
+		strcpy(file->owner, str_tmp);
+		// group
+		fgets (str_tmp, 100, fp);
+		str_tmp[strlen(str_tmp)-1] = '\0';
+		strcpy(file->group, str_tmp);
+		// uploaded
+		fgets (str_tmp, 100, fp);
+		str_tmp[strlen(str_tmp)-1] = '\0';
+		strcpy(file->uploaded_at, str_tmp);
+		fgets (str_tmp, 100, fp);
+		if(str_tmp[strlen(str_tmp)-1] == '\n'){
+			str_tmp[strlen(str_tmp)-1] = '\0';
+		}
+		file->downloaded_times = atoi(str_tmp);
 		insertEnd(files, file);
+		char c = fgetc(fp);
+    	if (c != EOF){
+			int res = fseek( fp, -1, SEEK_CUR );
+		}else
+        	break;
 	}
+	printFiles(*files);
 }
 
 int checkExistence(int type, singleList list, char string[50])
@@ -458,7 +481,6 @@ void* SendFileToClient(int new_socket, char fname[50])
     if(fp==NULL)
     {
         printf("File opern error");
-        return 1;   
     }   
 
     /* Read data from file and send it */
@@ -563,6 +585,28 @@ void deleteFile(singleList *files, singleList groups, char group_name[], char fi
 	}
 }
 
+int isFileExistInGroup(singleList groups, char group_name[], char file_name[]){
+	groups.cur = groups.root;
+	while(groups.cur != NULL){
+		if( strcmp( ((group_struct*)groups.cur->element)->group_name, group_name) == 0){
+			singleList files;
+			createSingleList(&files);
+			files = ((group_struct*)groups.cur->element)->files;
+			files.cur = files.root;
+			while (files.cur != NULL)
+			{
+				if( strcmp( ((simple_file_struct*)files.cur->element)->file_name, file_name) == 0){
+					return 1;
+				}
+				files.cur = files.cur->next;
+			}
+			break; 
+		}
+		groups.cur = groups.cur->next;
+	}
+	return 0;
+}
+
 int main(int argc, char *argv[]) 
 {
 	//catch wrong input
@@ -609,7 +653,7 @@ int main(int argc, char *argv[])
 	{ 
 		perror("accept"); 
 		exit(EXIT_FAILURE); 
-	} 
+	}
 
 
 
@@ -628,8 +672,6 @@ int main(int argc, char *argv[])
 	readGroupFile(&groups);
 	readFileFile(&files);
 	readUserFile(&users);
-	
-
 	
 
 	// read(new_socket, buff, 100);
@@ -701,8 +743,13 @@ int main(int argc, char *argv[])
 						{
 						case UPLOAD_REQUEST: //request code: 131
 						/* code */
-						printf("UPLOAD_REQUEST\n");
-						break;
+							printf("UPLOAD_REQUEST\n");
+							if( isFileExistInGroup(groups, "group2", "file.txt") == 0){
+								printf("khong ton tai\n");
+							}else{
+								printf("ton tai\n");
+							}
+							break;
 						case DOWNLOAD_REQUEST: //request code: 132
 						/* code */
 							printf("DOWNLOAD_REQUEST\n");

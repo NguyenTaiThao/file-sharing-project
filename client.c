@@ -46,7 +46,7 @@ int receiveFile(int sock){
 		printf("Error opening file");
 		return 1;
 	}
-	long double sz=1;
+	double sz=1;
 	/* Receive data in chunks of 256 bytes */
 	while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
 	{ 
@@ -54,7 +54,7 @@ int receiveFile(int sock){
 		
 		printf("\n\n\nbytes = %d\n",bytesReceived);
 		sz++;
-		printf("Received: %llf Mb\n",(sz/1024));
+		printf("Received: %lf Mb\n",(sz/1024));
 		fflush(stdout);
 		// recvBuff[n] = 0;
 		fwrite(recvBuff, 1,bytesReceived,fp);
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 
 int menu1()
 {
-	system("clear");
+	//system("clear");
     int choice, catch;
 	char err[10];
 	printf("\n\n");
@@ -166,7 +166,7 @@ int menu1()
 
 int menu2()
 {
-	system("clear");
+	//system("clear");
     int choice, catch;
 	char err[10];
 	printf("\n\n");
@@ -192,7 +192,7 @@ int menu2()
 
 int menu3(char group_name[50])
 {
-	system("clear");
+	//system("clear");
     int choice, catch;
 	char err[10];
 	printf("\n\n");

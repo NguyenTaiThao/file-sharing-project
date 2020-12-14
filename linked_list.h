@@ -247,7 +247,7 @@ int printFiles(singleList files){
   files.cur = files.root;
   while(files.cur != NULL){
     file = (file_struct*)(files.cur->element);
-    printf("%s %s %s %d\n", file->name, file->owner, file->uploaded_at, file->downloaded_times);
+    printf("%s %s %s %s %d\n", file->name, file->owner, file->group, file->uploaded_at, file->downloaded_times);
     files.cur = files.cur->next;
   }
 }

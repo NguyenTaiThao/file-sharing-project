@@ -21,6 +21,7 @@
 #define CREATE_GROUP_SUCCESS 803
 #define JOIN_GROUP_SUCCESS 804
 #define ACCESS_GROUP_SUCCESS 805
+#define LOGOUT_SUCCESS 806
 //==================================================//
 
 #define INCORRECT_PASSWORD 900

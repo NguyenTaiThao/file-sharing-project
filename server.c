@@ -505,6 +505,7 @@ void createGroup(int sock, singleList *groups, user_struct *loginUser){
 void sendCode(int sock, int code){
 	char codeStr[10];
 	sprintf(codeStr, "%d", code);
+	printf("-->Response: %s\n", codeStr);
 	send(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
 }
 
@@ -868,19 +869,17 @@ int main(int argc, char *argv[])
 							break;
 						}
 						}
-						/* code */
 						break;
 					case LOGOUT_REQUEST: //request code: 14
-						/* code */
 						printf("LOGOUT_REQUEST\n");
+						loginUser = NULL;
+						sendCode(new_socket, LOGOUT_SUCCESS);
 						break;
 
 					default:
 						break;
 					}
 				}
-			}else{
-				printf("no way\n");
 			}
 			break;
 		default:

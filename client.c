@@ -326,7 +326,6 @@ void navigation(int sock){
 		case 2:
 			if(signIn(sock) == 1){
 				do {
-
 					z2 = menu2();
 					switch (z2)
 					{
@@ -419,17 +418,20 @@ void navigation(int sock){
 								}
 							}
 							break;
-						case 4:
-							printf("Day la chuc nang dang xuat\n");
-							sendCode(sock, LOGOUT_REQUEST);
-							z1=-1;
-							break;
-						default:
-							z2 = 1;
-							break;
+					case 4:
+						sendCode(sock, LOGOUT_REQUEST);
+						read(sock,buffer, BUFF_SIZE);
+						printf("-->logout: %s\n", buffer);
+						if(atoi(buffer) == LOGOUT_SUCCESS){
+							printf("Dang xuat thanh cong.\n");
 						}
-					}while(z2 >= 1 && z2 < 4);
-				}	
+						break;
+					default:
+						z2 = 1;
+						break;
+					}
+				}while(z2 >= 1 && z2 < 4);
+			}	
 			break;
 		default:
 			break;

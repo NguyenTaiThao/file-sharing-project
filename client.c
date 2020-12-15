@@ -478,8 +478,6 @@ void clearBuff(){
 
 void* SendFileToServer(int new_socket, char fname[50])
 {
-    write(new_socket, fname,256);
-
     FILE *fp = fopen(fname,"rb");
     if(fp==NULL)
     {
@@ -527,13 +525,21 @@ void uploadFile(int sock, char groupName[50]){
 		fgets(fileName, 50, stdin);
 		send(sock, fileName, sizeof(fileName), 0);
 
-		printf("Nhap duong dan toi file: ");
-		fgets(filePath, 100, stdin);
-		filePath[strlen(filePath) - 1] = '\0';
-
-		printf("path: %s\n", filePath);
+		do{
+			printf("Nhap duong dan toi file: ");
+			fgets(buffer, 100, stdin);
+			buffer[strlen(buffer) - 1] = '\0';
+			if(fopen(buffer, "r") != NULL){
+				break;
+			}else{
+				printf("File khong hop le!!\n");
+			}
+		}while(1);
+		filePath[0] = '\0';
+		strcat(filePath, buffer);
 		SendFileToServer(sock, filePath);
 
+		
 	}else{
 		printf("He thong dang bao tri!!\n");
 	}

@@ -1,7 +1,7 @@
 all:
 	clear
 	gcc -o client client.c -pthread
-	gcc -o server server.c -pthread
+	gcc -o server server.c linked_list.h -pthread
 s:
 	clear
 	./server 9090

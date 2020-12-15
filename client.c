@@ -204,7 +204,8 @@ int menu3(char group_name[50])
     printf("2. Tai xuong.\n");
     printf("3. Xoa.\n");
     printf("4. Liet ke tat ca cac file.\n");
-	printf("5. Tro lai.\n");
+	printf("5. Kick.\n");
+	printf("6. Tro lai.\n");
 	printf("==========================================================\n");
     printf("=> Nhap lua chon cua ban: ");
     catch = scanf("%d",&choice);
@@ -302,9 +303,7 @@ int signIn(int sock){
 	}
 	// password[strlen(password) - 1] = '\0';
 	send(sock, password, sizeof(password) + 1, 0);
-	printf("%s\n", password);
 	read(sock, buff, BUFF_SIZE);
-	printf("--->%s",buff);
 	if(atoi(buff) != LOGIN_SUCCESS){
 		printf("Dang nhap that bai!!\n");
 		return 0;
@@ -365,7 +364,7 @@ void navigation(int sock){
 							printf("Something wrong!!!\n");
 						}
 						z3 = 0;
-						while(z3 != 5){
+						while(z3 != 6){
 							z3 = menu3(available_group[selected_group-1]);
 							switch (z3)
 							{
@@ -411,8 +410,24 @@ void navigation(int sock){
 									number_of_available_files = printAvailableElements(buffer, available_files);
 									break;
 								case 5:
+									sendCode(sock, KICK_MEMBER_REQUEST);
+									read(sock, buffer, 1000);
+									if(atoi(buffer) == NOT_OWNER_OF_GROUP){
+										printf("!!! Only the administrator of group can do this\n");
+									}else{
+										printf("====================== All Members =======================\n");
+										char available_members[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+										int number_of_available_members = printAvailableElements(buffer, available_members);
+										printf("Which member do you want to kick? (1-%d): ", number_of_available_members);
+										int selected_member;
+										scanf("%d", &selected_member);
+										printf("select = %d\n%s\n", selected_member, available_members[selected_member-1]);
+										send(sock, available_members[selected_member-1] , strlen(available_members[selected_member-1]) + 1 , 0 );
+									}
+									break;
+								case 6:
 									sendCode(sock, BACK_REQUEST);
-									z3 = 5;
+									z3 = 6;
 									break;
 								default:
 									break;

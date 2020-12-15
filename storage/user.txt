@@ -5,12 +5,16 @@ group2
 group3
 group4
 group5
+trung 123 1
+1
+group1
 thao2 123 1
 2
 group3
 group4
 trung1 123 1
-1
+2
+group1
 group3
 trung2 123 1
 0

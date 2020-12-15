@@ -463,7 +463,7 @@ void clearBuff(){
 
 void* SendFileToServer(int new_socket, char fname[50])
 {
-    write(new_socket, fname,256);
+    // write(new_socket, fname,256);
 
     FILE *fp = fopen(fname,"rb");
     if(fp==NULL)

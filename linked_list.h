@@ -271,3 +271,49 @@ int printUsers(singleList users){
   }
 }
 
+int saveFiles(singleList files){
+  
+  file_struct* file = NULL;
+  files.cur = files.root;
+  FILE *fp = fopen("./storage/file.txt", "w");
+  if(fp == NULL){
+    printf("Khong tim thay file luu tru. Luu file that bai!!\n");
+  }
+
+  while(files.cur != NULL){
+    file = (file_struct*)(files.cur->element);
+    fprintf(fp, "%s\n%s\n%s\n%s\n%d\n", file->name, file->owner, file->group, file->uploaded_at, file->downloaded_times);
+    files.cur = files.cur->next;
+  }
+  fclose(fp);
+  printf("luu file thanh cong.\n");
+
+}
+
+int saveUsers(singleList users){
+  singleList groups;
+  user_struct* user = NULL;
+
+  FILE *fp = fopen("./storage/user.txt", "w");
+  if(fp == NULL){
+    printf("Khong tim thay file luu tru. Luu nguoi dung that bai!!\n");
+  }
+
+  users.cur = users.root;
+  while(users.cur != NULL){
+    user = (user_struct*)(users.cur->element);
+    fprintf(fp, "%s %s %d\n", user->user_name, user->password, user->status);
+    fprintf(fp,"%d\n", user->count_group);
+    groups = user->joined_groups;
+    groups.cur = groups.root;
+    while(groups.cur != NULL){
+      fprintf(fp, "%s\n", (char*)(groups.cur->element));
+      groups.cur = groups.cur->next;
+    }
+
+    users.cur = users.cur->next;
+  }
+
+  fclose(fp);
+  printf("luu user thanh cong.\n");
+}

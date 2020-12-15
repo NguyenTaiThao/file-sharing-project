@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include "communication_code.h"
 #include "linked_list.h"
+#include <time.h>
 
 #define BUFF_SIZE 100
 
@@ -907,6 +908,7 @@ int main(int argc, char *argv[])
 		case REGISTER_REQUEST:
 			printf("REGISTER_REQUEST\n");
 			signUp(new_socket, &users);
+			saveUsers(users);
 			break;
 		case LOGIN_REQUEST:
 			// nhan username va password
@@ -1082,6 +1084,7 @@ void signUp(int sock, singleList *users){
 		buff[strlen(buff) - 2] = '\0';
 	}
 	printf("password: %s\n", buff);
+	
 	strcpy(password, buff);
 	user_struct *user = (user_struct*)malloc(sizeof(user_struct));
 	strcpy(user->user_name, username);
@@ -1127,7 +1130,7 @@ int signIn(int sock, singleList users, user_struct **loginUser){
 }
 
 void uploadFile(int sock, user_struct *loginUser){
-	char buff[50], filePath[100], group_name[50], file_name[50];
+	char buff[50], filePath[100], group_name[50], file_name[50], today[50];
 
 	sendCode(sock, UPLOAD_SUCCESS);
 
@@ -1146,10 +1149,16 @@ void uploadFile(int sock, user_struct *loginUser){
 
 	receiveUploadedFile(sock, filePath);
 
+	// get date of upload
+	time_t t = time(NULL);
+	struct tm tm = *localtime(&t);
+	sprintf( today, "%02d-%02d-%d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+
 	file_struct *file = (file_struct*)malloc(sizeof(file_struct));
 	strcpy(file->name, file_name);
 	strcpy(file->group, group_name);
 	strcpy(file->owner, loginUser->user_name);
+	strcpy(file->uploaded_at, today);
 	file->downloaded_times = 0;
 
 	insertEnd(&files, file);
@@ -1160,6 +1169,8 @@ void uploadFile(int sock, user_struct *loginUser){
 	strcpy(file_element->file_name, file_name);
 
 	insertEnd(&fileOfGroup, file_element); 
+
+	saveFiles(files);
 }
 
 int receiveUploadedFile(int sock, char filePath[100]){

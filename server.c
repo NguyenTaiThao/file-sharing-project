@@ -585,11 +585,19 @@ singleList getFilesOwns(singleList files, char username[50]){
 	return files_owns;
 }
 
-void* SendFileToClient(int new_socket, char fname[50])
+void* SendFileToClient(int new_socket, char fname[50], char group_name[50])
 {
+	char path[100];
     write(new_socket, fname,256);
 
-    FILE *fp = fopen(fname,"rb");
+	path[0] = '\0';
+	strcat(path, "./files/");
+	strcat(path, group_name);
+	strcat(path, "/");
+	strcat(path, fname);
+	printf("file: %s\n", path);
+
+    FILE *fp = fopen(path,"rb");
     if(fp==NULL)
     {
         printf("File opern error");
@@ -925,6 +933,7 @@ int main(int argc, char *argv[])
 						printf("nhom da chon: %s\n", buff);
 						if(addMember(groups, buff, loginUser->user_name) + addGroupToJoinedGroups(users, loginUser->user_name, buff) == 2){
 							sendCode(new_socket , JOIN_GROUP_SUCCESS);
+							saveUsers(users);
 						}else{
 							send(new_socket , "something went wrong", 21, 0 );
 						}
@@ -960,7 +969,7 @@ int main(int argc, char *argv[])
 									send(new_socket , str, strlen(str) + 1, 0 );
 									read( new_socket , buff, 100);
 									printf("file da chon: %s\n", buff);
-									SendFileToClient(new_socket, buff);
+									SendFileToClient(new_socket, buff, current_group);
 									break;
 								case DELETE_REQUEST: //request code: 133
 									printf("DELETE_REQUEST\n");

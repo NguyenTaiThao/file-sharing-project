@@ -24,4 +24,7 @@ group1
 group5
 group7
 thao 1234 1
-0
+3
+group1
+group2
+group3

@@ -38,3 +38,13 @@ dung1
 group1
 20-1-2020
 12
+test.png
+thao
+group1
+15-12-2020
+0
+1.png
+thao
+group3
+15-12-2020
+0

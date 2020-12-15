@@ -692,7 +692,7 @@ int isFileExistInGroup(singleList groups, char group_name[], char file_name[]){
 	return 0;
 }
 
-void uploadFile(int sock);
+void uploadFile(int sock, user_struct *loginUser);
 
 int receiveUploadedFile(int sock, char filePath[100]);
 
@@ -828,7 +828,7 @@ int main(int argc, char *argv[])
 							{
 								case UPLOAD_REQUEST: //request code: 131
 									printf("UPLOAD_REQUEST\n");
-									uploadFile(new_socket);
+									uploadFile(new_socket, loginUser);
 									break;
 								case DOWNLOAD_REQUEST: //request code: 132
 									printf("DOWNLOAD_REQUEST\n");
@@ -967,7 +967,7 @@ int signIn(int sock, singleList users, user_struct **loginUser){
 	return 0;
 }
 
-void uploadFile(int sock){
+void uploadFile(int sock, user_struct *loginUser){
 	char buff[50], filePath[100], group_name[50], file_name[50];
 
 	sendCode(sock, UPLOAD_SUCCESS);
@@ -986,6 +986,21 @@ void uploadFile(int sock){
 	strcat(filePath, file_name);
 
 	receiveUploadedFile(sock, filePath);
+
+	file_struct *file = (file_struct*)malloc(sizeof(file_struct));
+	strcpy(file->name, file_name);
+	strcpy(file->group, group_name);
+	strcpy(file->owner, loginUser->user_name);
+	file->downloaded_times = 0;
+
+	insertEnd(&files, file);
+
+	singleList fileOfGroup = getAllFilesOfGroup(groups, group_name);
+
+	simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+	strcpy(file_element->file_name, file_name);
+
+	insertEnd(&fileOfGroup, file_element); 
 }
 
 int receiveUploadedFile(int sock, char filePath[100]){
@@ -999,7 +1014,7 @@ int receiveUploadedFile(int sock, char filePath[100]){
 	fp = fopen(filePath, "ab"); 
 	if(NULL == fp)
 	{
-		printf("Error opening file");
+		printf("Error opening file\n");
 		return -1;
 	}
 	
@@ -1007,13 +1022,10 @@ int receiveUploadedFile(int sock, char filePath[100]){
 	/* Receive data in chunks of 256 bytes */
 	while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
 	{ 
-		printf("Receive buff: %s", recvBuff);
-		
 		printf("\n\n\nbytes = %d\n",bytesReceived);
 		sz++;
 		printf("Received: %lf Mb\n",(sz/1024));
 		fflush(stdout);
-		// recvBuff[n] = 0;
 		fwrite(recvBuff, 1,bytesReceived,fp);
 
 		if(bytesReceived < 1024){
@@ -1024,8 +1036,9 @@ int receiveUploadedFile(int sock, char filePath[100]){
 	if(bytesReceived < 0)
 	{
 		printf("\n Read Error \n");
-		return 0;
+		return -1;
 	}
+	
 	printf("\nFile OK....Completed\n");
 	return 1;
 }

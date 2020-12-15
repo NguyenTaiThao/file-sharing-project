@@ -4,8 +4,7 @@ trung
 thao 
 dung
 trung
-5
-1.jpg
+4
 file.txt
 anh.png
 anh2.jpg

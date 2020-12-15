@@ -3,13 +3,15 @@ trung
 3
 thao 
 dung
-trung
-5
+trung1
+7
+file4.txt
 1.jpg
 file.txt
 anh.png
 anh2.jpg
 video.mp4
+file8.txt
 group2
 thao
 2

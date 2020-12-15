@@ -176,7 +176,6 @@ void readFileFile(singleList *files){
 		}else
         	break;
 	}
-	printFiles(*files);
 }
 
 int checkExistence(int type, singleList list, char string[50])
@@ -432,6 +431,21 @@ void convertSimpleFilesToString(singleList simple_file, char str[1000]){
   	}
 }
 
+void convertSimpleUsersToString(singleList simple_user, char str[1000]){
+	str[0] = '\0';
+	simple_user.cur = simple_user.root;
+	while(simple_user.cur != NULL)
+  	{
+		strcat(str, ((simple_user_struct*)simple_user.cur->element)->user_name);
+		if(simple_user.cur->next == NULL){
+			str[strlen(str)] = '\0';
+		}else{
+			strcat(str, "+");
+		}
+    	simple_user.cur = simple_user.cur->next;
+  	}
+}
+
 void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info[200]){
 	char temp_str[10];
 	group_info[0] = '\0';
@@ -539,6 +553,21 @@ singleList getAllFilesOfGroup(singleList groups, char group_name[50]){
 	return files;
 }
 
+singleList getAllMembersOfGroup(singleList groups, char group_name[50]){
+	singleList members;
+	createSingleList(&members);
+	groups.cur = groups.root;
+	while (groups.cur != NULL)
+	{
+		if(strcmp( ((group_struct*)groups.cur->element)->group_name, group_name) == 0){
+			members = ((group_struct*)groups.cur->element)->members;
+			break;
+		}
+		groups.cur = groups.cur->next;
+	}
+	return members;
+}
+
 singleList getFilesOwns(singleList files, char username[50]){
 	singleList files_owns;
 	createSingleList(&files_owns);
@@ -638,11 +667,11 @@ singleList getFilesCanDelete(singleList files, singleList groups, char group_nam
 
 void deleteFile(singleList *files, singleList groups, char group_name[], char file_name[50]){
 	//delete file in singleList files
-	if( strcmp( ((file_struct*)(*files).root->element)->name, file_name) == 0){
+	if( strcmp( ((file_struct*)(*files).root->element)->name, file_name) == 0 && strcmp( ((file_struct*)(*files).root->element)->group, group_name) == 0){
 		deleteBegin(files);
 	}else{
 		(*files).cur = (*files).prev = (*files).root;
-		while ((*files).cur != NULL && strcmp( ((file_struct*)(*files).cur->element)->name, file_name) != 0)
+		while ((*files).cur != NULL && strcmp( ((file_struct*)(*files).cur->element)->name, file_name) != 0 && strcmp( ((file_struct*)(*files).cur->element)->group, group_name) != 0)
 		{
 			(*files).prev = (*files).cur;
             (*files).cur = (*files).cur->next;
@@ -655,7 +684,6 @@ void deleteFile(singleList *files, singleList groups, char group_name[], char fi
 	//delete file in singleList groups
 	singleList *files_of_group;
 	*files_of_group = getAllFilesOfGroup(groups, group_name);
-	printFile((*files_of_group));
 	if( strcmp( ((simple_file_struct*)(*files_of_group).root->element)->file_name, file_name) == 0){
 		deleteBegin(files_of_group);
 	}else{
@@ -695,6 +723,117 @@ int isFileExistInGroup(singleList groups, char group_name[], char file_name[]){
 void uploadFile(int sock);
 
 int receiveUploadedFile(int sock, char filePath[100]);
+
+
+int isOwnerOfGroup(singleList groups, char group_name[], char username[]){
+	groups.cur = groups.root;
+	while(groups.cur != NULL){
+		if( strcmp( ((group_struct*)groups.cur->element)->group_name, group_name) == 0){
+			if( strcmp( ((group_struct*)groups.cur->element)->owner, username) == 0){
+				return 1;
+			}
+		}
+		groups.cur = groups.cur->next;
+	}
+	return 0;
+}
+
+int getAllFilesOfUserInGroup(singleList *files, char group_name[50], char username[50], char all_files[20][50]){
+	int number_of_files = 0;
+	(*files).cur = (*files).root;
+	while ((*files).cur != NULL)
+	{
+		if( strcmp( ((file_struct*)(*files).cur->element)->owner, username) == 0 && strcmp( ((file_struct*)(*files).cur->element)->group, group_name) == 0){
+			strcpy(all_files[number_of_files], ((file_struct*)(*files).cur->element)->name);
+			number_of_files++;
+		}
+		(*files).cur = (*files).cur->next;
+	}
+	return number_of_files;
+}
+
+void kickMemberOut(singleList *files, singleList groups, char group_name[50], char username[50]){
+	//delete all file of member in singleList groups
+	char available_group[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+	int number_of_available_groups = getAllFilesOfUserInGroup(files, group_name, username, available_group);
+	singleList files_of_group;
+	files_of_group = getAllFilesOfGroup(groups, group_name);
+	for(int i = 0; i < number_of_available_groups; i++){
+		printf("%s\n",available_group[i]);
+		if( strcmp( ((simple_file_struct*)files_of_group.root->element)->file_name, available_group[i]) == 0){
+			files_of_group.root = files_of_group.root->next;
+			((group_struct*)groups.root->element)->files = files_of_group;
+			printf("ok\n");
+		}else{
+			files_of_group.cur = files_of_group.prev = files_of_group.root;
+			while (files_of_group.cur != NULL && strcmp( ((simple_file_struct*)files_of_group.cur->element)->file_name, available_group[i]) != 0)
+			{
+				files_of_group.prev = files_of_group.cur;
+				files_of_group.cur = files_of_group.cur->next;
+			}
+			files_of_group.prev->next = files_of_group.cur->next;
+			files_of_group.cur = files_of_group.prev;
+		}
+	}
+	
+	// delete file in singleList files
+	(*files).cur = (*files).root;
+	while ((*files).cur != NULL)
+	{
+		if( strcmp( ((file_struct*)(*files).root->element)->owner, username) == 0 && strcmp( ((file_struct*)(*files).root->element)->group, group_name) == 0){
+			deleteBegin(files);
+		}else{
+			while ((*files).cur != NULL && strcmp( ((file_struct*)(*files).cur->element)->owner, username) != 0 && strcmp( ((file_struct*)(*files).root->element)->group, group_name) != 0)
+			{
+				(*files).prev = (*files).cur;
+				(*files).cur = (*files).cur->next;
+			}
+			if((*files).cur != NULL){
+				node *newNode = (*files).cur;
+				(*files).prev->next = (*files).cur->next;
+				(*files).cur = (*files).prev;
+				free(newNode);
+			}
+		}
+		if((*files).cur == NULL) break;
+		(*files).cur = (*files).cur->next;
+	}
+	//delete user in singleList users
+	if( strcmp( ((user_struct*)(*files).root->element)->user_name, username) == 0){
+		users.root = users.root->next;
+		users.cur = users.cur->next;
+	}else{
+		users.cur = users.prev = users.root;
+		while (users.cur != NULL && strcmp( ((user_struct*)users.cur->element)->user_name, username) != 0)
+		{
+			users.prev = users.cur;
+            users.cur = users.cur->next;
+		}
+		node *newNode = users.cur;
+		users.prev->next = users.cur->next;
+		users.cur = users.prev;
+		free(newNode);
+	}
+	//delete user in singleList groups
+	singleList members;
+	createSingleList(&members);
+	members = getAllMembersOfGroup(groups, group_name);
+	if( strcmp(username, ((simple_user_struct*)members.root->element)->user_name) == 0){
+		members.root = members.root->next;
+		members.cur = members.cur->next;
+	}else{
+		members.cur = members.prev = members.root;
+		while (members.cur != NULL && strcmp( ((simple_user_struct*)members.cur->element)->user_name, username) != 0)
+		{
+			members.prev = members.cur;
+            members.cur = members.cur->next;
+		}
+		node *newNode = members.cur;
+		members.prev->next = members.cur->next;
+		members.cur = members.prev;
+		free(newNode);
+	}
+}
 
 int main(int argc, char *argv[]) 
 {
@@ -796,23 +935,23 @@ int main(int argc, char *argv[])
 						printf("JOIN_GROUP_REQUEST\n");
 						singleList un_joined_group;
 						createSingleList(&un_joined_group);
-						un_joined_group = unJoinedGroups(groups, users, "trung2");
+						un_joined_group = unJoinedGroups(groups, users, loginUser->user_name);
 						char str[200];
 						convertSimpleGroupsToString(un_joined_group, str);
 						send(new_socket , str, strlen(str) + 1, 0 );
 						x = read( new_socket , buff, 100);
 						printf("nhom da chon: %s\n", buff);
-						if(addMember(groups, buff, "trung2") + addGroupToJoinedGroups(users, "trung2", buff) == 2){
+						if(addMember(groups, buff, loginUser->user_name) + addGroupToJoinedGroups(users, loginUser->user_name, buff) == 2){
 							sendCode(new_socket , JOIN_GROUP_SUCCESS);
 						}else{
-							send(new_socket , "something wrong", 16, 0 );
+							send(new_socket , "something went wrong", 21, 0 );
 						}
 						break;
 					case ACCESS_GROUP_REQUEST: //request code: 13
 						printf("ACCESS_GROUP_REQUEST\n");
 						singleList joined_group;
 						createSingleList(&joined_group);
-						joined_group = joinedGroups(users, "thao1");
+						joined_group = joinedGroups(users, loginUser->user_name);
 						convertSimpleGroupsToString(joined_group, str);
 						send(new_socket , str, strlen(str) + 1, 0 );
 						read( new_socket , buff, 100);
@@ -845,15 +984,15 @@ int main(int argc, char *argv[])
 									printf("DELETE_REQUEST\n");
 									singleList files_can_delete;
 									createSingleList(&files_can_delete);
-									files_can_delete = getFilesCanDelete(files, groups, "group3" ,"dung");
+									files_can_delete = getFilesCanDelete(files, groups, current_group ,loginUser->user_name);
 									convertSimpleFilesToString(files_can_delete, str);
 									send(new_socket , str, strlen(str) + 1, 0 );
 									read( new_socket , buff, 100);
 									printf("file da chon: %s\n", buff);
-									deleteFile(&files, groups, "group3", "file7.txt");
+									deleteFile(&files, groups, current_group, buff);
 									singleList test;
 									createSingleList(&test);
-									test = getAllFilesOfGroup(groups, "group3");
+									test = getAllFilesOfGroup(groups, current_group);
 									printFile(test);
 									break;
 								case VIEW_FILES_REQUEST: //request code: 134
@@ -862,6 +1001,26 @@ int main(int argc, char *argv[])
 									all_files = getAllFilesOfGroup(groups, current_group);
 									convertSimpleFilesToString(all_files, str);
 									send(new_socket , str, strlen(str) + 1, 0 );
+									break;
+								case KICK_MEMBER_REQUEST:
+									printf("KICK_MEMBER_REQUEST\n");
+									if(isOwnerOfGroup(groups, current_group,loginUser->user_name) == 0){
+										sendCode(new_socket, NOT_OWNER_OF_GROUP);
+									}else{
+										singleList members;
+										createSingleList(&members);
+										members = getAllMembersOfGroup(groups, current_group);
+										convertSimpleUsersToString(members, str);
+										send(new_socket, str, strlen(str)+1, 0);
+										read(new_socket, buff, 100);
+										printf("group = %s, member = %s\n", current_group, buff);
+										kickMemberOut(&files,groups, current_group, buff);
+										singleList members1;
+										createSingleList(&members1);
+										members1 = getAllMembersOfGroup(groups, current_group);
+										printUser(members1);
+									}
+									
 									break;
 								case BACK_REQUEST: //request code: 135
 								/* code */

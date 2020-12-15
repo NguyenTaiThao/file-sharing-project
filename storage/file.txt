@@ -29,8 +29,8 @@ group5
 20-1-2020
 10
 file4.txt
-dung1
-group2
+trung1
+group1
 20-1-2020
 11
 file5.txt

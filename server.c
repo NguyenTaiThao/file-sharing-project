@@ -799,22 +799,7 @@ void kickMemberOut(singleList *files, singleList groups, char group_name[50], ch
 		if((*files).cur == NULL) break;
 		(*files).cur = (*files).cur->next;
 	}
-	//delete user in singleList users
-	if( strcmp( ((user_struct*)(*files).root->element)->user_name, username) == 0){
-		users.root = users.root->next;
-		users.cur = users.cur->next;
-	}else{
-		users.cur = users.prev = users.root;
-		while (users.cur != NULL && strcmp( ((user_struct*)users.cur->element)->user_name, username) != 0)
-		{
-			users.prev = users.cur;
-            users.cur = users.cur->next;
-		}
-		node *newNode = users.cur;
-		users.prev->next = users.cur->next;
-		users.cur = users.prev;
-		free(newNode);
-	}
+
 	//delete user in singleList groups
 	singleList members;
 	createSingleList(&members);
@@ -834,6 +819,10 @@ void kickMemberOut(singleList *files, singleList groups, char group_name[50], ch
 		members.cur = members.prev;
 		free(newNode);
 	}
+}
+
+void sortBySize(singleList *files){
+
 }
 
 int main(int argc, char *argv[]) 
@@ -925,15 +914,6 @@ int main(int argc, char *argv[])
 						createGroup(new_socket, &groups, loginUser);
 						break;
 					case JOIN_GROUP_REQUEST: //request code: 12
-							printf("UPLOAD_REQUEST\n");
-							if( isFileExistInGroup(groups, "group2", "file.txt") == 0){
-								printf("khong ton tai\n");
-							}else{
-								printf("ton tai\n");
-							}
-							break;
-					case DOWNLOAD_REQUEST: //request code: 132
-						/* code */
 						printf("JOIN_GROUP_REQUEST\n");
 						singleList un_joined_group;
 						createSingleList(&un_joined_group);
@@ -1052,7 +1032,7 @@ int main(int argc, char *argv[])
         
     }
 	return 0; 
-} 
+} \
 
 void signUp(int sock, singleList *users){
 	char buff[BUFF_SIZE], username[50], password[50];

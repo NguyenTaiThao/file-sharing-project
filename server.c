@@ -820,6 +820,10 @@ void kickMemberOut(singleList *files, singleList groups, char group_name[50], ch
 	}
 }
 
+void sortBySize(singleList *files){
+
+}
+
 int main(int argc, char *argv[]) 
 {
 	//catch wrong input
@@ -908,15 +912,6 @@ int main(int argc, char *argv[])
 						createGroup(new_socket, &groups, loginUser);
 						break;
 					case JOIN_GROUP_REQUEST: //request code: 12
-							printf("UPLOAD_REQUEST\n");
-							if( isFileExistInGroup(groups, "group2", "file.txt") == 0){
-								printf("khong ton tai\n");
-							}else{
-								printf("ton tai\n");
-							}
-							break;
-					case DOWNLOAD_REQUEST: //request code: 132
-						/* code */
 						printf("JOIN_GROUP_REQUEST\n");
 						singleList un_joined_group;
 						createSingleList(&un_joined_group);

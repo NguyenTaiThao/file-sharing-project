@@ -81,22 +81,35 @@ void readGroupFile(singleList *groups){
 	fclose(fp);
 }
 
-void writeToGroupFile(char group_name[50], char owner[50], int number_of_files, int number_of_members, singleList members, singleList files){
+void writeToGroupFile(singleList groups){
+	group_struct* group = NULL;
 	FILE *fp;
-	fp = fopen("./storage/group.txt","a");
-	fprintf(fp,"\n%s", group_name);
-	fprintf(fp,"\n%s", owner);
-	fprintf(fp,"\n%d", number_of_members);
-	members.cur = members.root;
-	while(members.cur!=NULL){
-		fprintf(fp,"\n%s",((simple_user_struct*)members.cur->element)->user_name);
-		members.cur = members.cur->next;
-	}
-	fprintf(fp,"\n%d", number_of_files);
-	files.cur = files.root;
-	while(files.cur!=NULL){
-		fprintf(fp,"\n%s",((simple_file_struct*)files.cur->element)->file_name);
-		files.cur = files.cur->next;
+	fp = fopen("./storage/group.txt","w");
+	groups.cur = groups.root;
+	while (groups.cur != NULL)
+	{
+		group = (group_struct*)(groups.cur->element);
+		fprintf(fp,"\n%s", group->group_name);
+		fprintf(fp,"\n%s", group->owner);
+		fprintf(fp,"\n%d", group->number_of_members);
+		singleList members;
+		createSingleList(&members);
+		members = group->members;
+		members.cur = members.root;
+		while(members.cur!=NULL){
+			fprintf(fp,"\n%s",((simple_user_struct*)members.cur->element)->user_name);
+			members.cur = members.cur->next;
+		}
+		fprintf(fp,"\n%d", group->number_of_files);
+		singleList files;
+		createSingleList(&files);
+		files = group->files;
+		files.cur = files.root;
+		while(files.cur!=NULL){
+			fprintf(fp,"\n%s",((simple_file_struct*)files.cur->element)->file_name);
+			files.cur = files.cur->next;
+		}
+		groups.cur = groups.cur->next;
 	}
 	fclose(fp);
 }
@@ -820,9 +833,73 @@ void kickMemberOut(singleList *files, singleList groups, char group_name[50], ch
 	}
 }
 
-void sortBySize(singleList *files){
-
+singleList searchFileByCategory(singleList files, char category[10]){
+	char sub_str[10] , file_name[50];
+	if( strcmp(category, "other") == 0){
+		singleList file_found;
+		createSingleList(&file_found);
+		files.cur = files.root;
+		while (files.cur != NULL)
+		{
+			strcpy(file_name, ((file_struct*)files.cur->element)->name);
+			if(strstr(file_name, ".jpg") == NULL || strstr(file_name, ".png") == NULL || strstr(file_name, ".jepg") == NULL || strstr(file_name, ".JPG") == NULL || strstr(file_name, ".PNG") == NULL || strstr(file_name, ".txt") == NULL || strstr(file_name, ".mp3") == NULL || strstr(file_name, ".mp4") == NULL)
+			{
+				simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+				strcpy(file_element->file_name, file_name);
+				insertEnd(&file_found, file_element);
+			}
+			files.cur = files.cur->next;
+		}
+		printFile(file_found);
+		return file_found;
+	}else if( strcmp(category, "image") == 0){
+		singleList file_found;
+		createSingleList(&file_found);
+		files.cur = files.root;
+		while (files.cur != NULL)
+		{
+			strcpy(file_name, ((file_struct*)files.cur->element)->name);
+			printf("file name: %s\n", file_name);
+			if(strstr(file_name, ".jpg") != NULL || strstr(file_name, ".png") != NULL || strstr(file_name, ".jepg") != NULL || strstr(file_name, ".JPG") != NULL || strstr(file_name, ".PNG") != NULL)
+			{
+				simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+				strcpy(file_element->file_name, file_name);
+				insertEnd(&file_found, file_element);
+			}
+			files.cur = files.cur->next;
+		}
+		printFile(file_found);
+		return file_found;
+	}else if(strcmp(category, "text") == 0)
+	{
+		strcpy(sub_str, ".txt");
+	}else if(strcmp(category, "audio") == 0)
+	{
+		strcpy(sub_str, ".mp3");
+	}else if(strcmp(category, "video") == 0)
+	{
+		strcpy(sub_str, ".mp4");
+	}
+	singleList file_found;
+	createSingleList(&file_found);
+	files.cur = files.root;
+	while (files.cur != NULL)
+	{
+		strcpy(file_name, ((file_struct*)files.cur->element)->name);
+		printf("file name: %s\n", file_name);
+		if(strstr(file_name, sub_str) != NULL)
+		{
+			simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+			strcpy(file_element->file_name, file_name);
+			insertEnd(&file_found, file_element);
+		}
+		files.cur = files.cur->next;
+	}
+	printFile(file_found);
+	return file_found;
 }
+
+singleList searchFileByName(singleList files, char file_name[50]);
 
 int main(int argc, char *argv[]) 
 {
@@ -1010,6 +1087,16 @@ int main(int argc, char *argv[])
 									break;
 							}
 						}
+						break;
+					case SEARCH_FILE_REQUEST: //request code: 15
+						printf("SEARCH_FILE_REQUEST\n");
+						read(new_socket, buff, 100);
+						printf("Client want to search %s\n", buff);
+						singleList file_found;
+						createSingleList(&file_found);
+						file_found = searchFileByCategory(files, buff);
+						convertSimpleFilesToString(file_found, str);
+						send(new_socket, str, strlen(str)+1, 0);
 						break;
 					case LOGOUT_REQUEST: //request code: 14
 						printf("LOGOUT_REQUEST\n");

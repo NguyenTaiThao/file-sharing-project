@@ -36,8 +36,6 @@ int receiveFile(int sock){
 	path[0] = '\0';
 	strcat(path, "./client_source/");
 	strcat(path, fname);
-	// strcpy(fname, path);
-	// system("cd client_source");
 	printf("File Name: %s\n",path);
 	printf("Receiving file...");
 	fp = fopen(path, "ab"); 
@@ -49,8 +47,8 @@ int receiveFile(int sock){
 	double sz=1;
 	/* Receive data in chunks of 256 bytes */
 	while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
-	{ 
-		printf("Receive buff: %s", recvBuff);
+	{
+		system("clear"); 
 		
 		printf("\n\n\nbytes = %d\n",bytesReceived);
 		sz++;
@@ -150,10 +148,10 @@ int menu1()
 	char err[10];
 	printf("\n\n");
     printf("====================UPLOAD FILE SHARING===================\n");
-    printf("1. Dang ky\n");
-    printf("2. Dang nhap\n");
+    printf("1. Sign up\n");
+    printf("2. Sign in\n");
 	printf("==========================================================\n");
-    printf("=> Nhap lua chon cua ban: ");
+    printf("=> Enter your choice: ");
     catch = scanf("%d",&choice);
 	
 	printf("\n\n");
@@ -169,17 +167,19 @@ int menu1()
 
 int menu2()
 {
+	//sleep(0.5);
 	//system("clear");
     int choice, catch;
 	char err[10];
 	printf("\n\n");
 	printf("========================= GROUPS ========================\n");
-	printf("1. Tao nhom\n");
-    printf("2. Vao nhom\n");
-    printf("3. Truy cap nhom da vao\n");
-    printf("4. Dang xuat\n");
+	printf("1. Create group\n");
+    printf("2. Join group\n");
+    printf("3. Access joined group\n");
+	printf("4. Search\n");
+    printf("5. Logout\n");
 	printf("=========================================================\n");
-    printf("=> Nhap lua chon cua ban: ");
+    printf("=> Enter your choice: ");
     catch = scanf("%d",&choice);
 
 	printf("\n\n");
@@ -195,17 +195,18 @@ int menu2()
 
 int menu3(char group_name[50])
 {
+	//sleep(0.5);
 	//system("clear");
     int choice, catch;
 	char err[10];
 	printf("\n\n");
 	printf("========================== %s ========================\n", group_name);
-    printf("1. Tai len.\n");
-    printf("2. Tai xuong.\n");
-    printf("3. Xoa.\n");
-    printf("4. Liet ke tat ca cac file.\n");
-	printf("5. Kick.\n");
-	printf("6. Tro lai.\n");
+    printf("1. Upload\n");
+    printf("2. Download\n");
+    printf("3. Delete file\n");
+    printf("4. View all files\n");
+	printf("5. Kick\n");
+	printf("6. Back\n");
 	printf("==========================================================\n");
     printf("=> Nhap lua chon cua ban: ");
     catch = scanf("%d",&choice);
@@ -305,7 +306,7 @@ int signIn(int sock){
 	send(sock, password, sizeof(password) + 1, 0);
 	read(sock, buff, BUFF_SIZE);
 	if(atoi(buff) != LOGIN_SUCCESS){
-		printf("Dang nhap that bai!!\n");
+		printf("Login failed!!\n");
 		return 0;
 	}else{
 		return 1;
@@ -346,7 +347,7 @@ void navigation(int sock){
 						if(atoi(buffer) == JOIN_GROUP_SUCCESS){
 							printf("Join successfully\n");
 						}else{
-							printf("Something wrong!!!\n");
+							printf("Something went wrong!!!\n");
 						}
 						break;
 					case 3:
@@ -435,18 +436,36 @@ void navigation(int sock){
 							}
 							break;
 					case 4:
+						sendCode(sock, SEARCH_FILE_REQUEST);
+						char category[6][10] = {"text","image","audio","video","other"};
+						printf("1. Text\n");
+						printf("2. Image\n");
+						printf("3. Audio\n");
+						printf("4. Video\n");
+						printf("5. Other\n");
+						printf("6. Back\n");
+						printf("==========================================================\n");
+						printf("=> Enter your choice: ");
+						int category_choice;
+						scanf("%d", &category_choice);
+						send(sock, category[category_choice-1] , strlen(category[category_choice-1]) + 1 , 0 );
+						read(sock, buffer, 1000);
+						char available_files[60][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+						int number_of_available_files = printAvailableElements(buffer, available_files);
+						break;
+					case 5:
 						sendCode(sock, LOGOUT_REQUEST);
 						read(sock,buffer, BUFF_SIZE);
 						printf("-->logout: %s\n", buffer);
 						if(atoi(buffer) == LOGOUT_SUCCESS){
-							printf("Dang xuat thanh cong.\n");
+							printf("Logout successfully.\n");
 						}
 						break;
 					default:
 						z2 = 1;
 						break;
 					}
-				}while(z2 >= 1 && z2 < 4);
+				}while(z2 >= 1 && z2 < 5);
 			}	
 			break;
 		default:

@@ -17,10 +17,122 @@
 
 #define BUFF_SIZE 100
 
-int REQUEST;
 singleList groups, files, users;
 
+void readGroupFile(singleList *groups);
+void writeToGroupFile(singleList groups);
+void readUserFile(singleList* users);
+void readFileFile(singleList *files);
+int checkExistence(int type, singleList list, char string[50]);
+void* findByName(int type, singleList list, char string[50]);
+int addMember(singleList groups, char group_name[50], char username[50]);
+int addGroupToJoinedGroups(singleList users, char username[50], char group_name[50]);
+singleList unJoinedGroups(singleList groups, singleList users, char username[50]);
+void convertSimpleGroupsToString(singleList simple_group, char str[1000]);
+void convertSimpleFilesToString(singleList simple_file, char str[1000]);
+void convertSimpleUsersToString(singleList simple_user, char str[1000]);
+void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info[200]);
+void createGroup(int sock, singleList *groups, user_struct *loginUser);
+int addGroupToJoinedGroups(singleList users, char username[50], char group_name[50]);
+singleList unJoinedGroups(singleList groups, singleList users, char username[50]);
+void convertSimpleGroupsToString(singleList simple_group, char str[1000]);
+void convertSimpleFilesToString(singleList simple_file, char str[1000]);
+void convertSimpleUsersToString(singleList simple_user, char str[1000]);
+void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info[200]);
+void createGroup(int sock, singleList *groups, user_struct *loginUser);
+void sendCode(int sock, int code);
+singleList joinedGroups(singleList users, char username[50]);
+singleList getAllFilesOfGroup(singleList groups, char group_name[50]);
+singleList getAllMembersOfGroup(singleList groups, char group_name[50]);
+singleList getFilesOwns(singleList files, char username[50]);
+void* SendFileToClient(int new_socket, char fname[50], char group_name[50]);
+singleList getFilesCanDelete(singleList files, singleList groups, char group_name[], char username[]);
+void deleteFile(singleList *files, singleList groups, char group_name[], char file_name[50]);
+int isFileExistInGroup(singleList groups, char group_name[], char file_name[]);
+int isOwnerOfGroup(singleList groups, char group_name[], char username[]);
+int getAllFilesOfUserInGroup(singleList *files, char group_name[50], char username[50], char all_files[20][50]);
+void kickMemberOut(singleList *files, singleList groups, char group_name[50], char username[50]);
+singleList searchFileByCategory(singleList files, char category[10]);
+void signUp(int sock, singleList *users);
+int signIn(int sock, singleList users, user_struct **loginUser);
+void uploadFile(int sock, user_struct *loginUser);
+int receiveUploadedFile(int sock, char filePath[100]);
 void * handleThread(void *my_sock);
+
+//==============MAIN==============
+int main(int argc, char *argv[]) 
+{
+	//catch wrong input
+	if(argc==1){
+		printf("Please input port number\n");
+		return 0;
+	}
+	char *port_number = argv[1];
+	int port = atoi(port_number);
+	int opt = 1;
+	int server_fd, new_socket; 
+	struct sockaddr_in address;
+	int addrlen = sizeof(address); 
+
+	// Creating socket file descriptor 
+	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) 
+	{ 
+		perror("socket failed"); 
+		exit(EXIT_FAILURE); 
+	} 
+	
+	// Forcefully attaching socket to the port 
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) 
+	{ 
+		perror("setsockopt"); 
+		exit(EXIT_FAILURE); 
+	} 
+	address.sin_family = AF_INET; 
+	address.sin_addr.s_addr = INADDR_ANY; 
+	address.sin_port = htons( port ); 
+	
+	// Forcefully attaching socket to the port 
+	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) 
+	{ 
+		perror("bind failed"); 
+		exit(EXIT_FAILURE); 
+	} 
+	if (listen(server_fd, 3) < 0) 
+	{ 
+		perror("listen"); 
+		exit(EXIT_FAILURE); 
+	} 
+
+
+	//============================Start to communicate with client=====================================
+	//=================================================================================================
+	char buff[100];
+
+	createSingleList(&groups);
+	createSingleList(&files);
+	createSingleList(&users);
+	
+	readGroupFile(&groups);
+	readFileFile(&files);
+	readUserFile(&users);
+	
+	while(1){
+		pthread_t tid; 
+
+		if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) 
+		{ 
+			perror("accept"); 
+			exit(EXIT_FAILURE); 
+		}
+		printf("New request from sockfd = %d.\n",new_socket);	
+        pthread_create(&tid, NULL, &handleThread, &new_socket);
+    }
+	close(server_fd);
+	return 0; 
+} 
+
+
+
 
 void readGroupFile(singleList *groups){
 	
@@ -745,10 +857,6 @@ int isFileExistInGroup(singleList groups, char group_name[], char file_name[]){
 	return 0;
 }
 
-void uploadFile(int sock, user_struct *loginUser);
-
-int receiveUploadedFile(int sock, char filePath[100]);
-
 int isOwnerOfGroup(singleList groups, char group_name[], char username[]){
 	groups.cur = groups.root;
 	while(groups.cur != NULL){
@@ -909,79 +1017,6 @@ singleList searchFileByCategory(singleList files, char category[10]){
 	printFile(file_found);
 	return file_found;
 }
-
-singleList searchFileByName(singleList files, char file_name[50]);
-
-int main(int argc, char *argv[]) 
-{
-	//catch wrong input
-	if(argc==1){
-		printf("Please input port number\n");
-		return 0;
-	}
-	char *port_number = argv[1];
-	int port = atoi(port_number);
-	int opt = 1;
-	int server_fd, new_socket; 
-	struct sockaddr_in address;
-	int addrlen = sizeof(address); 
-
-	// Creating socket file descriptor 
-	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) 
-	{ 
-		perror("socket failed"); 
-		exit(EXIT_FAILURE); 
-	} 
-	
-	// Forcefully attaching socket to the port 
-	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) 
-	{ 
-		perror("setsockopt"); 
-		exit(EXIT_FAILURE); 
-	} 
-	address.sin_family = AF_INET; 
-	address.sin_addr.s_addr = INADDR_ANY; 
-	address.sin_port = htons( port ); 
-	
-	// Forcefully attaching socket to the port 
-	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) 
-	{ 
-		perror("bind failed"); 
-		exit(EXIT_FAILURE); 
-	} 
-	if (listen(server_fd, 3) < 0) 
-	{ 
-		perror("listen"); 
-		exit(EXIT_FAILURE); 
-	} 
-
-
-	//============================Start to communicate with client=====================================
-	//=================================================================================================
-	char buff[100];
-
-	createSingleList(&groups);
-	createSingleList(&files);
-	createSingleList(&users);
-	
-	readGroupFile(&groups);
-	readFileFile(&files);
-	readUserFile(&users);
-	
-	while(1){
-		pthread_t tid; 
-
-		if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0) 
-		{ 
-			perror("accept"); 
-			exit(EXIT_FAILURE); 
-		}
-		printf("New request from sockfd = %d.\n",new_socket);	
-        pthread_create(&tid, NULL, &handleThread, &new_socket);
-    }
-	close(server_fd);
-	return 0; 
-} 
 
 void signUp(int sock, singleList *users){
 	char buff[BUFF_SIZE], username[50], password[50];
@@ -1144,6 +1179,7 @@ int receiveUploadedFile(int sock, char filePath[100]){
 
 void * handleThread(void *my_sock){
 	int new_socket = *((int *)my_sock);
+	int REQUEST;
 	char buff[BUFF_SIZE];
 	user_struct *loginUser = NULL;
 

@@ -82,6 +82,7 @@ void uploadFile(int sock, char groupName[50]);
 void sendCode(int sock, int code);
 void clearBuff();
 
+//=============== MAIN ==================
 int main(int argc, char *argv[]) 
 {
 	pthread_t thread;
@@ -140,6 +141,8 @@ int main(int argc, char *argv[])
 		
 	return 0; 
 } 
+
+
 
 int menu1()
 {

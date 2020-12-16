@@ -1147,156 +1147,156 @@ void * handleThread(void *my_sock){
 	char buff[BUFF_SIZE];
 	user_struct *loginUser = NULL;
 
-	read( new_socket , buff, 100);
-	REQUEST = atoi(buff);
 	while(1){
-		switch (REQUEST)
-		{
-			case REGISTER_REQUEST:
-				printf("REGISTER_REQUEST\n");
-				signUp(new_socket, &users);
-				saveUsers(users);
-				break;
-			case LOGIN_REQUEST:
-				// nhan username va password
-				printf("LOGIN_REQUEST\n");
-				if(signIn(new_socket, users, &loginUser) == 1){
-					while(REQUEST != LOGOUT_REQUEST){
-						read( new_socket , buff, BUFF_SIZE);
-						REQUEST = atoi(buff);
-						switch (REQUEST)
-						{
-						case CREATE_GROUP_REQUEST: //request code: 11
-							/* code */
-							printf("CREATE_GROUP_REQUEST\n");
-							createGroup(new_socket, &groups, loginUser);
-							break;
-						case JOIN_GROUP_REQUEST: //request code: 12
-							printf("JOIN_GROUP_REQUEST\n");
-							singleList un_joined_group;
-							createSingleList(&un_joined_group);
-							un_joined_group = unJoinedGroups(groups, users, loginUser->user_name);
-							char str[200];
-							convertSimpleGroupsToString(un_joined_group, str);
-							send(new_socket , str, strlen(str) + 1, 0 );
-							read( new_socket , buff, 100);
-							printf("nhom da chon: %s\n", buff);
-							if(addMember(groups, buff, loginUser->user_name) + addGroupToJoinedGroups(users, loginUser->user_name, buff) == 2){
-								sendCode(new_socket , JOIN_GROUP_SUCCESS);
-								saveUsers(users);
-							}else{
-								send(new_socket , "something went wrong", 21, 0 );
-							}
-							break;
-						case ACCESS_GROUP_REQUEST: //request code: 13
-							printf("ACCESS_GROUP_REQUEST\n");
-							singleList joined_group;
-							createSingleList(&joined_group);
-							joined_group = joinedGroups(users, loginUser->user_name);
-							convertSimpleGroupsToString(joined_group, str);
-							send(new_socket , str, strlen(str) + 1, 0 );
-							read( new_socket , buff, 100);
-							printf("nhom da chon: %s\n", buff);
-							char current_group[50];
-							strcpy(current_group, buff);
-							sendCode(new_socket, ACCESS_GROUP_SUCCESS);
-							while(REQUEST != BACK_REQUEST){
+		read( new_socket , buff, 100);
+		REQUEST = atoi(buff);
+			switch (REQUEST)
+			{
+				case REGISTER_REQUEST:
+					printf("REGISTER_REQUEST\n");
+					signUp(new_socket, &users);
+					saveUsers(users);
+					break;
+				case LOGIN_REQUEST:
+					// nhan username va password
+					printf("LOGIN_REQUEST\n");
+					if(signIn(new_socket, users, &loginUser) == 1){
+						while(REQUEST != LOGOUT_REQUEST){
+							read( new_socket , buff, BUFF_SIZE);
+							REQUEST = atoi(buff);
+							switch (REQUEST)
+							{
+							case CREATE_GROUP_REQUEST: //request code: 11
+								/* code */
+								printf("CREATE_GROUP_REQUEST\n");
+								createGroup(new_socket, &groups, loginUser);
+								break;
+							case JOIN_GROUP_REQUEST: //request code: 12
+								printf("JOIN_GROUP_REQUEST\n");
+								singleList un_joined_group;
+								createSingleList(&un_joined_group);
+								un_joined_group = unJoinedGroups(groups, users, loginUser->user_name);
+								char str[200];
+								convertSimpleGroupsToString(un_joined_group, str);
+								send(new_socket , str, strlen(str) + 1, 0 );
 								read( new_socket , buff, 100);
-								REQUEST = atoi(buff);
-
-								switch (REQUEST)
-								{
-									case UPLOAD_REQUEST: //request code: 131
-										printf("UPLOAD_REQUEST\n");
-										uploadFile(new_socket, loginUser);
-										break;
-									case DOWNLOAD_REQUEST: //request code: 132
-										printf("DOWNLOAD_REQUEST\n");
-										singleList all_files;
-										createSingleList(&all_files);
-										all_files = getAllFilesOfGroup(groups, current_group);
-										convertSimpleFilesToString(all_files, str);
-										send(new_socket , str, strlen(str) + 1, 0 );
-										read( new_socket , buff, 100);
-										printf("file da chon: %s\n", buff);
-										SendFileToClient(new_socket, buff, current_group);
-										break;
-									case DELETE_REQUEST: //request code: 133
-										printf("DELETE_REQUEST\n");
-										singleList files_can_delete;
-										createSingleList(&files_can_delete);
-										files_can_delete = getFilesCanDelete(files, groups, current_group ,loginUser->user_name);
-										convertSimpleFilesToString(files_can_delete, str);
-										send(new_socket , str, strlen(str) + 1, 0 );
-										read( new_socket , buff, 100);
-										printf("file da chon: %s\n", buff);
-										deleteFile(&files, groups, current_group, buff);
-										singleList test;
-										createSingleList(&test);
-										test = getAllFilesOfGroup(groups, current_group);
-										printFile(test);
-										break;
-									case VIEW_FILES_REQUEST: //request code: 134
-									/* code */
-										printf("VIEW_FILES_REQUEST\n");
-										all_files = getAllFilesOfGroup(groups, current_group);
-										convertSimpleFilesToString(all_files, str);
-										send(new_socket , str, strlen(str) + 1, 0 );
-										break;
-									case KICK_MEMBER_REQUEST:
-										printf("KICK_MEMBER_REQUEST\n");
-										if(isOwnerOfGroup(groups, current_group,loginUser->user_name) == 0){
-											sendCode(new_socket, NOT_OWNER_OF_GROUP);
-										}else{
-											singleList members;
-											createSingleList(&members);
-											members = getAllMembersOfGroup(groups, current_group);
-											convertSimpleUsersToString(members, str);
-											send(new_socket, str, strlen(str)+1, 0);
-											read(new_socket, buff, 100);
-											printf("group = %s, member = %s\n", current_group, buff);
-											kickMemberOut(&files,groups, current_group, buff);
-											singleList members1;
-											createSingleList(&members1);
-											members1 = getAllMembersOfGroup(groups, current_group);
-											printUser(members1);
-										}
-										
-										break;
-									case BACK_REQUEST: //request code: 135
-									/* code */
-									printf("BACK_REQUEST\n");
-										break;
-									default:
-										break;
+								printf("nhom da chon: %s\n", buff);
+								if(addMember(groups, buff, loginUser->user_name) + addGroupToJoinedGroups(users, loginUser->user_name, buff) == 2){
+									sendCode(new_socket , JOIN_GROUP_SUCCESS);
+									saveUsers(users);
+								}else{
+									send(new_socket , "something went wrong", 21, 0 );
 								}
-							}
-							break;
-						case SEARCH_FILE_REQUEST: //request code: 15
-							printf("SEARCH_FILE_REQUEST\n");
-							read(new_socket, buff, 100);
-							printf("Client want to search %s\n", buff);
-							singleList file_found;
-							createSingleList(&file_found);
-							file_found = searchFileByCategory(files, buff);
-							convertSimpleFilesToString(file_found, str);
-							send(new_socket, str, strlen(str)+1, 0);
-							break;
-						case LOGOUT_REQUEST: //request code: 14
-							printf("LOGOUT_REQUEST\n");
-							loginUser = NULL;
-							sendCode(new_socket, LOGOUT_SUCCESS);
-							break;
+								break;
+							case ACCESS_GROUP_REQUEST: //request code: 13
+								printf("ACCESS_GROUP_REQUEST\n");
+								singleList joined_group;
+								createSingleList(&joined_group);
+								joined_group = joinedGroups(users, loginUser->user_name);
+								convertSimpleGroupsToString(joined_group, str);
+								send(new_socket , str, strlen(str) + 1, 0 );
+								read( new_socket , buff, 100);
+								printf("nhom da chon: %s\n", buff);
+								char current_group[50];
+								strcpy(current_group, buff);
+								sendCode(new_socket, ACCESS_GROUP_SUCCESS);
+								while(REQUEST != BACK_REQUEST){
+									read( new_socket , buff, 100);
+									REQUEST = atoi(buff);
 
-						default:
-							break;
+									switch (REQUEST)
+									{
+										case UPLOAD_REQUEST: //request code: 131
+											printf("UPLOAD_REQUEST\n");
+											uploadFile(new_socket, loginUser);
+											break;
+										case DOWNLOAD_REQUEST: //request code: 132
+											printf("DOWNLOAD_REQUEST\n");
+											singleList all_files;
+											createSingleList(&all_files);
+											all_files = getAllFilesOfGroup(groups, current_group);
+											convertSimpleFilesToString(all_files, str);
+											send(new_socket , str, strlen(str) + 1, 0 );
+											read( new_socket , buff, 100);
+											printf("file da chon: %s\n", buff);
+											SendFileToClient(new_socket, buff, current_group);
+											break;
+										case DELETE_REQUEST: //request code: 133
+											printf("DELETE_REQUEST\n");
+											singleList files_can_delete;
+											createSingleList(&files_can_delete);
+											files_can_delete = getFilesCanDelete(files, groups, current_group ,loginUser->user_name);
+											convertSimpleFilesToString(files_can_delete, str);
+											send(new_socket , str, strlen(str) + 1, 0 );
+											read( new_socket , buff, 100);
+											printf("file da chon: %s\n", buff);
+											deleteFile(&files, groups, current_group, buff);
+											singleList test;
+											createSingleList(&test);
+											test = getAllFilesOfGroup(groups, current_group);
+											printFile(test);
+											break;
+										case VIEW_FILES_REQUEST: //request code: 134
+										/* code */
+											printf("VIEW_FILES_REQUEST\n");
+											all_files = getAllFilesOfGroup(groups, current_group);
+											convertSimpleFilesToString(all_files, str);
+											send(new_socket , str, strlen(str) + 1, 0 );
+											break;
+										case KICK_MEMBER_REQUEST:
+											printf("KICK_MEMBER_REQUEST\n");
+											if(isOwnerOfGroup(groups, current_group,loginUser->user_name) == 0){
+												sendCode(new_socket, NOT_OWNER_OF_GROUP);
+											}else{
+												singleList members;
+												createSingleList(&members);
+												members = getAllMembersOfGroup(groups, current_group);
+												convertSimpleUsersToString(members, str);
+												send(new_socket, str, strlen(str)+1, 0);
+												read(new_socket, buff, 100);
+												printf("group = %s, member = %s\n", current_group, buff);
+												kickMemberOut(&files,groups, current_group, buff);
+												singleList members1;
+												createSingleList(&members1);
+												members1 = getAllMembersOfGroup(groups, current_group);
+												printUser(members1);
+											}
+											
+											break;
+										case BACK_REQUEST: //request code: 135
+										/* code */
+										printf("BACK_REQUEST\n");
+											break;
+										default:
+											break;
+									}
+								}
+								break;
+							case SEARCH_FILE_REQUEST: //request code: 15
+								printf("SEARCH_FILE_REQUEST\n");
+								read(new_socket, buff, 100);
+								printf("Client want to search %s\n", buff);
+								singleList file_found;
+								createSingleList(&file_found);
+								file_found = searchFileByCategory(files, buff);
+								convertSimpleFilesToString(file_found, str);
+								send(new_socket, str, strlen(str)+1, 0);
+								break;
+							case LOGOUT_REQUEST: //request code: 14
+								printf("LOGOUT_REQUEST\n");
+								loginUser = NULL;
+								sendCode(new_socket, LOGOUT_SUCCESS);
+								break;
+
+							default:
+								break;
+							}
 						}
 					}
-				}
-				break;
-			default:
-				break;
-		}
-}
+					break;
+				default:
+					break;
+			}
+	}
     close(new_socket);
 }

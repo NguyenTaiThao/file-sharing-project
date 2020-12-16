@@ -1,5 +1,5 @@
 group1
-trung
+thao
 3
 thao 
 dung
@@ -7,7 +7,7 @@ trung
 4
 file.txt
 anh.png
-anh2.jpg
+test.png
 video.mp4
 group2
 thao

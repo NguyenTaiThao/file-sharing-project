@@ -662,7 +662,7 @@ void createGroup(int sock, singleList *groups, user_struct *loginUser){
 		strcat(cmd, "\'");
 		system(cmd);
 
-		strcpy(noti, "Nhom duoc tao thanh cong.");
+		strcpy(noti, "Create group successfully.\n");
 		send(sock, noti, strlen(noti) + 1, 0);
 		writeToGroupFile(*groups);
 		saveUsers(users);
@@ -1231,6 +1231,7 @@ void * handleThread(void *my_sock){
 								printf("CREATE_GROUP_REQUEST\n");
 								createGroup(new_socket, &groups, loginUser);
 								writeToGroupFile(groups);
+								saveUsers(users);
 								break;
 							case JOIN_GROUP_REQUEST: //request code: 12
 								printf("JOIN_GROUP_REQUEST\n");
@@ -1245,6 +1246,7 @@ void * handleThread(void *my_sock){
 								if(addMember(groups, buff, loginUser->user_name) + addGroupToJoinedGroups(users, loginUser->user_name, buff) == 2){
 									sendCode(new_socket , JOIN_GROUP_SUCCESS);
 									saveUsers(users);
+									writeToGroupFile(groups);
 								}else{
 									send(new_socket , "something went wrong", 21, 0 );
 								}
@@ -1270,6 +1272,7 @@ void * handleThread(void *my_sock){
 										case UPLOAD_REQUEST: //request code: 131
 											printf("UPLOAD_REQUEST\n");
 											uploadFile(new_socket, loginUser);
+											writeToGroupFile(groups);
 											break;
 										case DOWNLOAD_REQUEST: //request code: 132
 											printf("DOWNLOAD_REQUEST\n");

@@ -335,6 +335,8 @@ void navigation(int sock){
 					case 1:
 						sendCode(sock, CREATE_GROUP_REQUEST);
 						createGroup(sock);
+						read(sock, buffer, 1000);
+						printf("%s\n", buffer);
 						break;
 					case 2:
 						printf("========================== Available Group ==========================\n");
@@ -343,14 +345,18 @@ void navigation(int sock){
 						char available_group[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 						int number_of_available_groups = printAvailableElements(buffer, available_group);
 						int selected_group;
-						printf("Which group do you want to join? (1-%d): ", number_of_available_groups);
-						scanf("%d", &selected_group);
-						send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 ); 
-						read(sock, buffer, 1000);
-						if(atoi(buffer) == JOIN_GROUP_SUCCESS){
-							printf("Join successfully\n");
+						if(number_of_available_groups > 0){
+							printf("Which group do you want to join? (1-%d): ", number_of_available_groups);
+							scanf("%d", &selected_group);
+							send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 ); 
+							read(sock, buffer, 1000);
+							if(atoi(buffer) == JOIN_GROUP_SUCCESS){
+								printf("Join successfully\n");
+							}else{
+								printf("Something went wrong!!!\n");
+							}
 						}else{
-							printf("Something went wrong!!!\n");
+							printf("Have not any groups\n");
 						}
 						break;
 					case 3:
@@ -358,16 +364,21 @@ void navigation(int sock){
 						sendCode(sock, ACCESS_GROUP_REQUEST);
 						read(sock, buffer, 1000);
 						number_of_available_groups = printAvailableElements(buffer, available_group);
-						printf("Which group do you want to access? (1-%d): ", number_of_available_groups);
-						scanf("%d", &selected_group);
-						send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 );
-						read(sock, buffer, 1000);
-						if(atoi(buffer) == ACCESS_GROUP_SUCCESS){
-							printf(" => Access %s successfully\n", available_group[selected_group-1]);
+						if(number_of_available_groups > 0){
+							printf("Which group do you want to access? (1-%d): ", number_of_available_groups);
+							scanf("%d", &selected_group);
+							send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 );
+							read(sock, buffer, 1000);
+							if(atoi(buffer) == ACCESS_GROUP_SUCCESS){
+								printf(" => Access %s successfully\n", available_group[selected_group-1]);
+								z3 = 0;
+							}else{
+								printf("Something wrong!!!\n");
+							}
 						}else{
-							printf("Something wrong!!!\n");
+							printf("You have not joined any groups.\n");
+							z3 = 6;
 						}
-						z3 = 0;
 						while(z3 != 6){
 							z3 = menu3(available_group[selected_group-1]);
 							switch (z3)
@@ -383,19 +394,23 @@ void navigation(int sock){
 									char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 									int number_of_available_files = printAvailableElements(buffer, available_files);
 									int selected_file;
-									printf("Which file do you want to download? (1-%d): ", number_of_available_files);
-									scanf("%d", &selected_file);
-									send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
-									if(receiveFile(sock) == 1){
-										printf("Open the file? (Y/n): ");
-										char choice[10], command[100];
-										scanf("%s", choice);
-										if(strcmp(choice, "Y") == 0){
-											command[0] = '\0';
-											strcat(command, "xdg-open ./client_source/");
-											strcat(command, available_files[selected_file-1]);
-											system(command);
+									if(number_of_available_files > 0){
+										printf("Which file do you want to download? (1-%d): ", number_of_available_files);
+										scanf("%d", &selected_file);
+										send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+										if(receiveFile(sock) == 1){
+											printf("Open the file? (Y/n): ");
+											char choice[10], command[100];
+											scanf("%s", choice);
+											if(strcmp(choice, "Y") == 0){
+												command[0] = '\0';
+												strcat(command, "xdg-open ./client_source/");
+												strcat(command, available_files[selected_file-1]);
+												system(command);
+											}
 										}
+									}else{
+										printf("This group does not have any files\n");
 									}
 									break;
 								case 3:
@@ -403,9 +418,13 @@ void navigation(int sock){
 									printf("==================== Available Files =====================\n");
 									read(sock, buffer, 1000); 
 									number_of_available_files = printAvailableElements(buffer, available_files);
-									printf("Which file do you want to delete? (1-%d): ", number_of_available_files);
-									scanf("%d", &selected_file);
-									send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+									if(number_of_available_files > 0){
+										printf("Which file do you want to delete? (1-%d): ", number_of_available_files);
+										scanf("%d", &selected_file);
+										send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+									}else{
+										printf("This group does not have any files");
+									}
 									break;
 								case 4:
 									printf("======================= All Files ========================\n");
@@ -422,11 +441,13 @@ void navigation(int sock){
 										printf("====================== All Members =======================\n");
 										char available_members[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 										int number_of_available_members = printAvailableElements(buffer, available_members);
-										printf("Which member do you want to kick? (1-%d): ", number_of_available_members);
-										int selected_member;
-										scanf("%d", &selected_member);
-										printf("select = %d\n%s\n", selected_member, available_members[selected_member-1]);
-										send(sock, available_members[selected_member-1] , strlen(available_members[selected_member-1]) + 1 , 0 );
+										if(number_of_available_members > 0){
+											printf("Which member do you want to kick? (1-%d): ", number_of_available_members);
+											int selected_member;
+											scanf("%d", &selected_member);
+											printf("select = %d\n%s\n", selected_member, available_members[selected_member-1]);
+											send(sock, available_members[selected_member-1] , strlen(available_members[selected_member-1]) + 1 , 0 );
+										}else{printf("This group does not have any members\n");}
 									}
 									break;
 								case 6:
@@ -477,7 +498,7 @@ void navigation(int sock){
 }
 
 void createGroup(int sock){
-	char group_name[50], buff[BUFF_SIZE];
+	char group_name[50];
 	printf("Nhap ten nhom: ");
 
 	clearBuff();
@@ -485,8 +506,6 @@ void createGroup(int sock){
 	fgets(group_name, 50, stdin);
 	group_name[strlen(group_name) - 1] = '\0';
 	send(sock, group_name, strlen(group_name) + 1, 0);
-	read(sock, buff, BUFF_SIZE);
-	printf("%s\n", buff);
 }
 
 void sendCode(int sock, int code){

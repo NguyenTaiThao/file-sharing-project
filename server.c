@@ -32,7 +32,6 @@ void convertSimpleGroupsToString(singleList simple_group, char str[1000]);
 void convertSimpleFilesToString(singleList simple_file, char str[1000]);
 void convertSimpleUsersToString(singleList simple_user, char str[1000]);
 void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info[200]);
-void createGroup(int sock, singleList *groups, user_struct *loginUser);
 int addGroupToJoinedGroups(singleList users, char username[50], char group_name[50]);
 singleList unJoinedGroups(singleList groups, singleList users, char username[50]);
 void convertSimpleGroupsToString(singleList simple_group, char str[1000]);
@@ -205,24 +204,24 @@ void writeToGroupFile(singleList groups){
 	while (groups.cur != NULL)
 	{
 		group = (group_struct*)(groups.cur->element);
-		fprintf(fp,"\n%s", group->group_name);
-		fprintf(fp,"\n%s", group->owner);
-		fprintf(fp,"\n%d", group->number_of_members);
+		fprintf(fp,"%s\n", group->group_name);
+		fprintf(fp,"%s\n", group->owner);
+		fprintf(fp,"%d\n", group->number_of_members);
 		singleList members;
 		createSingleList(&members);
 		members = group->members;
 		members.cur = members.root;
 		while(members.cur!=NULL){
-			fprintf(fp,"\n%s",((simple_user_struct*)members.cur->element)->user_name);
+			fprintf(fp,"%s\n",((simple_user_struct*)members.cur->element)->user_name);
 			members.cur = members.cur->next;
 		}
-		fprintf(fp,"\n%d", group->number_of_files);
+		fprintf(fp,"%d\n", group->number_of_files);
 		singleList files;
 		createSingleList(&files);
 		files = group->files;
 		files.cur = files.root;
 		while(files.cur!=NULL){
-			fprintf(fp,"\n%s",((simple_file_struct*)files.cur->element)->file_name);
+			fprintf(fp,"%s\n",((simple_file_struct*)files.cur->element)->file_name);
 			files.cur = files.cur->next;
 		}
 		groups.cur = groups.cur->next;
@@ -626,11 +625,11 @@ void createGroup(int sock, singleList *groups, user_struct *loginUser){
 		group_element->files = files;
 		group_element->members = members;
 		group_element->number_of_files = 0;
-		group_element->number_of_members = 1;
+		group_element->number_of_members = 0;
 
 		insertEnd(groups, group_element);
 
-		addMember(*groups, group_element->group_name, loginUser->user_name);
+		//addMember(*groups, group_element->group_name, loginUser->user_name);
 		
 		addGroupToJoinedGroups(users, loginUser->user_name, group_element->group_name);
 
@@ -1206,6 +1205,7 @@ void * handleThread(void *my_sock){
 								/* code */
 								printf("CREATE_GROUP_REQUEST\n");
 								createGroup(new_socket, &groups, loginUser);
+								writeToGroupFile(groups);
 								break;
 							case JOIN_GROUP_REQUEST: //request code: 12
 								printf("JOIN_GROUP_REQUEST\n");
@@ -1277,6 +1277,7 @@ void * handleThread(void *my_sock){
 											printf("VIEW_FILES_REQUEST\n");
 											all_files = getAllFilesOfGroup(groups, current_group);
 											convertSimpleFilesToString(all_files, str);
+											printf("%s\n", str);
 											send(new_socket , str, strlen(str) + 1, 0 );
 											break;
 										case KICK_MEMBER_REQUEST:
@@ -1302,6 +1303,7 @@ void * handleThread(void *my_sock){
 										case BACK_REQUEST: //request code: 135
 										/* code */
 										printf("BACK_REQUEST\n");
+											writeToGroupFile(groups);
 											break;
 										default:
 											break;

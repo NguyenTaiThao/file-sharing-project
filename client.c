@@ -500,6 +500,7 @@ void clearBuff(){
 
 void* SendFileToServer(int new_socket, char fname[50])
 {
+	
     FILE *fp = fopen(fname,"rb");
     if(fp==NULL)
     {

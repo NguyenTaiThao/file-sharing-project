@@ -1,0 +1,12 @@
+group1
+thao1
+0
+0
+group2
+thao1
+0
+0
+group of thao1
+thao1
+0
+0

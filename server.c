@@ -149,6 +149,14 @@ void readGroupFile(singleList *groups){
 		createSingleList(&members);
 		singleList files;
 		createSingleList(&files);
+		
+		char c = fgetc(fp);
+    	if (c != EOF){
+			int res = fseek( fp, -1, SEEK_CUR );
+			fgets (str_tmp, 100, fp);
+		}else
+        	break;
+
 		//======================end initialize======================================
 		str_tmp[strlen(str_tmp)-1] = '\0';
 		strcpy(group_element->group_name, str_tmp);
@@ -186,12 +194,6 @@ void readGroupFile(singleList *groups){
 		group_element->files = files;
 		//=====================end read files=========================================
 		insertEnd(groups, group_element); // add group_element to group_list
-		char c = fgetc(fp);
-    	if (c != EOF){
-			int res = fseek( fp, -1, SEEK_CUR );
-			fgets (str_tmp, 100, fp);
-		}else
-        	break;
 	}
 	fclose(fp);
 }

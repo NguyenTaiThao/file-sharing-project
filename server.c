@@ -149,7 +149,7 @@ void readGroupFile(singleList *groups){
 		createSingleList(&members);
 		singleList files;
 		createSingleList(&files);
-		
+
 		char c = fgetc(fp);
     	if (c != EOF){
 			int res = fseek( fp, -1, SEEK_CUR );
@@ -266,7 +266,9 @@ void readUserFile(singleList* users){
 
 		if(fscanf(f, "%d\n", &count_group) > 0){
 			for(int i = 0; i < count_group; i++){
-				fscanf(f, "%s\n", group_name);
+				// fscanf(f, "%s\n", group_name);
+				fgets(group_name, 50, f);
+				group_name[strlen(group_name) -1]  = '\0';
 				insertEnd(&groups, strdup(group_name));
 			}
 		}
@@ -662,6 +664,8 @@ void createGroup(int sock, singleList *groups, user_struct *loginUser){
 
 		strcpy(noti, "Nhom duoc tao thanh cong.");
 		send(sock, noti, strlen(noti) + 1, 0);
+		writeToGroupFile(*groups);
+		saveUsers(users);
 	}
 }
 

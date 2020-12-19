@@ -34,4 +34,5 @@
 #define EXISTENCE_FILE_NAME 903
 #define NON_EXISTENCE_USERNAME 904
 #define NOT_OWNER_OF_GROUP 905
+#define NO_FILE_TO_DELETE 906
 //==================================================//

@@ -424,6 +424,7 @@ void navigation(int sock){
 										send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
 									}else{
 										printf("This group does not have any files");
+										sendCode(sock, NO_FILE_TO_DELETE);
 									}
 									break;
 								case 4:

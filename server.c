@@ -830,24 +830,39 @@ singleList getFilesCanDelete(singleList files, singleList groups, char group_nam
 void deleteFile(singleList *files, singleList groups, char group_name[], char file_name[50]){
 	//delete file in singleList files
 	if( strcmp( ((file_struct*)(*files).root->element)->name, file_name) == 0 && strcmp( ((file_struct*)(*files).root->element)->group, group_name) == 0){
-		deleteBegin(files);
+		(*files).root = deleteBegin(files);
 	}else{
 		(*files).cur = (*files).prev = (*files).root;
-		while ((*files).cur != NULL && strcmp( ((file_struct*)(*files).cur->element)->name, file_name) != 0 && strcmp( ((file_struct*)(*files).cur->element)->group, group_name) != 0)
+		while ((*files).cur != NULL)
 		{
-			(*files).prev = (*files).cur;
-            (*files).cur = (*files).cur->next;
+			if( strcmp( ((file_struct*)(*files).cur->element)->name, file_name) == 0 && strcmp( ((file_struct*)(*files).cur->element)->group, group_name) == 0){
+				break;
+			}else{
+				(*files).prev = (*files).cur;
+				(*files).cur = (*files).cur->next;
+			}
 		}
-		node *newNode = (*files).cur;
+		printf("file tim thay: %s\n%s\n", ((file_struct*)(*files).cur->element)->name, ((file_struct*)(*files).cur->element)->group);
 		(*files).prev->next = (*files).cur->next;
 		(*files).cur = (*files).prev;
-		free(newNode);
 	}
+
 	//delete file in singleList groups
+	groups.cur = groups.root;
+	while(groups.cur != NULL){
+		if( strcmp(((group_struct*)(groups).cur->element)->group_name, group_name) == 0){
+			((group_struct*)(groups).cur->element)->number_of_files -= 1;
+			break;
+		}
+		groups.cur = groups.cur->next;
+	}
+
+
 	singleList *files_of_group;
 	*files_of_group = getAllFilesOfGroup(groups, group_name);
 	if( strcmp( ((simple_file_struct*)(*files_of_group).root->element)->file_name, file_name) == 0){
 		deleteBegin(files_of_group);
+		((group_struct*)(groups).cur->element)->files = (*files_of_group);
 	}else{
 		(*files_of_group).cur = (*files_of_group).prev = (*files_of_group).root;
 		while ((*files_of_group).cur != NULL && strcmp( ((simple_file_struct*)(*files_of_group).cur->element)->file_name, file_name) != 0)
@@ -858,6 +873,8 @@ void deleteFile(singleList *files, singleList groups, char group_name[], char fi
 		(*files_of_group).prev->next = (*files_of_group).cur->next;
 		(*files_of_group).cur = (*files_of_group).prev;
 	}
+	writeToGroupFile(groups);
+	saveFiles(*files);
 }
 
 int isFileExistInGroup(singleList groups, char group_name[], char file_name[]){
@@ -1297,12 +1314,14 @@ void * handleThread(void *my_sock){
 											convertSimpleFilesToString(files_can_delete, str);
 											send(new_socket , str, strlen(str) + 1, 0 );
 											read( new_socket , buff, 100);
-											printf("file da chon: %s\n", buff);
-											deleteFile(&files, groups, current_group, buff);
-											singleList test;
-											createSingleList(&test);
-											test = getAllFilesOfGroup(groups, current_group);
-											printFile(test);
+											if(atoi(buff) != NO_FILE_TO_DELETE){
+												printf("file da chon: %s\n", buff);
+												deleteFile(&files, groups, current_group, buff);
+												printGroup(groups);
+												printFiles(files);
+											}else{
+												printf("No file to delete\n");
+											}
 											break;
 										case VIEW_FILES_REQUEST: //request code: 134
 										/* code */

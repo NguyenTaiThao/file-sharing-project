@@ -295,6 +295,7 @@ int saveUsers(singleList users){
   user_struct* user = NULL;
 
   FILE *fp = fopen("./storage/user.txt", "w");
+
   if(fp == NULL){
     printf("Khong tim thay file luu tru. Luu nguoi dung that bai!!\n");
   }
@@ -302,7 +303,7 @@ int saveUsers(singleList users){
   users.cur = users.root;
   while(users.cur != NULL){
     user = (user_struct*)(users.cur->element);
-    fprintf(fp, "%s %s %d\n", user->user_name, user->password, user->status);
+    fprintf(fp, "%s\n%s\n%d\n", user->user_name, user->password, user->status);
     fprintf(fp,"%d\n", user->count_group);
     groups = user->joined_groups;
     groups.cur = groups.root;

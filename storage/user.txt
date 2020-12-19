@@ -17,8 +17,9 @@ ga
 trung
 132
 1
-1
+2
 group trung
+anh yeu em
 2
 thao
 1

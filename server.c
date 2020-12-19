@@ -112,7 +112,6 @@ int main(int argc, char *argv[])
 	createSingleList(&users);
 	
 	readGroupFile(&groups);
-	printGroup(groups);
 	readFileFile(&files);
 	readUserFile(&users);
 	
@@ -252,17 +251,17 @@ void readUserFile(singleList* users){
     	if (c != EOF){
 			int res = fseek( f, -1, SEEK_CUR );
 		}else{
-			printf("scan: stop\n");
+			//printf("scan: stop\n");
         	break;
 		}
 
 		fgets(username, 50, f);
 		username[strlen(username) -1 ] = '\0';
-		printf("scan: %s\n", username);
+		//printf("scan: %s\n", username);
 
 		fgets(password, 50, f);
 		password[strlen(password) -1 ] = '\0';
-		printf("scan: %s\n", password);
+		//printf("scan: %s\n", password);
 
 		fscanf(f,"%d\n", &status);
 
@@ -630,7 +629,6 @@ void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info
 }
 
 void createGroup(int sock, singleList groups, user_struct *loginUser){
-	printGroup(groups);
 	char buff[100], noti[100], cmd[100];
 	read(sock, buff, 100);
 
@@ -666,7 +664,6 @@ void createGroup(int sock, singleList groups, user_struct *loginUser){
 
 		strcpy(noti, "Create group successfully.\n");
 		send(sock, noti, strlen(noti) + 1, 0);
-		printGroup(groups);
 		writeToGroupFile(groups);
 		saveUsers(users);
 	}
@@ -929,25 +926,23 @@ void kickMemberOut(singleList *files, singleList groups, char group_name[50], ch
 	//delete all file of member in singleList groups
 	char available_group[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 	int number_of_available_groups = getAllFilesOfUserInGroup(files, group_name, username, available_group);
-	singleList files_of_group;
 	//reduce the number of files
 	groups.cur = groups.root;
 	while( groups.cur != NULL){
-		if( strcmp( ((group_struct*)groups.root->element)->group_name, group_name ) == 0){
-			((group_struct*)groups.root->element)->number_of_files -= number_of_available_groups;
-			((group_struct*)groups.root->element)->number_of_members -= 1;
+		if( strcmp( ((group_struct*)groups.cur->element)->group_name, group_name ) == 0){
+			((group_struct*)groups.cur->element)->number_of_files -= number_of_available_groups;
+			((group_struct*)groups.cur->element)->number_of_members -= 1;
 			break;
 		}
 		groups.cur = groups.cur->next;
 	}
 	//end reduce the number of files 
+	singleList files_of_group;
 	files_of_group = getAllFilesOfGroup(groups, group_name);
 	for(int i = 0; i < number_of_available_groups; i++){
-		printf("%s\n",available_group[i]);
 		if( strcmp( ((simple_file_struct*)files_of_group.root->element)->file_name, available_group[i]) == 0){
 			files_of_group.root = files_of_group.root->next;
 			((group_struct*)groups.root->element)->files = files_of_group;
-			printf("ok\n");
 		}else{
 			files_of_group.cur = files_of_group.prev = files_of_group.root;
 			while (files_of_group.cur != NULL && strcmp( ((simple_file_struct*)files_of_group.cur->element)->file_name, available_group[i]) != 0)
@@ -959,17 +954,17 @@ void kickMemberOut(singleList *files, singleList groups, char group_name[50], ch
 			files_of_group.cur = files_of_group.prev;
 		}
 	}
-	
 	// delete file in singleList files
 	(*files).cur = (*files).root;
 	while ((*files).cur != NULL)
 	{
 		if( strcmp( ((file_struct*)(*files).root->element)->owner, username) == 0 && strcmp( ((file_struct*)(*files).root->element)->group, group_name) == 0){
-			deleteBegin(files);
+			(*files).root = deleteBegin(files);
 		}else{
 			while ((*files).cur != NULL)
 			{
-				if( strcmp( ((file_struct*)(*files).cur->element)->owner, username) == 0 && strcmp( ((file_struct*)(*files).root->element)->group, group_name) == 0){
+				if( strcmp( ((file_struct*)(*files).cur->element)->owner, username) == 0 && strcmp( ((file_struct*)(*files).cur->element)->group, group_name) == 0){
+					//printf("found\n");
 					break;
 				}else{
 					(*files).prev = (*files).cur;
@@ -986,26 +981,39 @@ void kickMemberOut(singleList *files, singleList groups, char group_name[50], ch
 		if((*files).cur == NULL) break;
 		(*files).cur = (*files).cur->next;
 	}
-
 	//delete user in singleList groups
-	singleList members;
-	createSingleList(&members);
-	members = getAllMembersOfGroup(groups, group_name);
-	if( strcmp(username, ((simple_user_struct*)members.root->element)->user_name) == 0){
-		members.root = members.root->next;
-		members.cur = members.cur->next;
-	}else{
-		members.cur = members.prev = members.root;
-		while (members.cur != NULL && strcmp( ((simple_user_struct*)members.cur->element)->user_name, username) != 0)
-		{
-			members.prev = members.cur;
-            members.cur = members.cur->next;
+	groups.cur = groups.root;
+	while( groups.cur != NULL){
+		if( strcmp( ((group_struct*)groups.cur->element)->group_name, group_name ) == 0){
+			singleList members;
+			createSingleList(&members);
+			members = getAllMembersOfGroup(groups, group_name);
+			if( strcmp(username, ((simple_user_struct*)members.root->element)->user_name) == 0){
+				members.root = members.root->next;
+				((group_struct*)groups.cur->element)->members = members;
+			}else{
+				members.cur = members.prev = members.root;
+				while (members.cur != NULL && strcmp( ((simple_user_struct*)members.cur->element)->user_name, username) != 0)
+				{
+					members.prev = members.cur;
+					members.cur = members.cur->next;
+				}
+				node *newNode = members.cur;
+				members.prev->next = members.cur->next;
+				members.cur = members.prev;
+				free(newNode);
+				((group_struct*)groups.cur->element)->members = members;
+			}
+			break;
 		}
-		node *newNode = members.cur;
-		members.prev->next = members.cur->next;
-		members.cur = members.prev;
-		free(newNode);
+		groups.cur = groups.cur->next;
 	}
+	
+	
+
+	writeToGroupFile(groups);
+	saveFiles(*files);
+	saveUsers(users);
 }
 
 singleList searchFileByCategory(singleList files, char category[10]){
@@ -1081,7 +1089,7 @@ int updateDownloadedTimes(singleList files, char file_name[50]){
 		if( strcmp( ((file_struct*)files.cur->element)->name, file_name) == 0 ){
 			((file_struct*)files.cur->element)->downloaded_times += 1;
 		}
-		files.cur = files.cur->next
+		files.cur = files.cur->next;
 	}
 	
 }
@@ -1353,8 +1361,6 @@ void * handleThread(void *my_sock){
 											if(atoi(buff) != NO_FILE_TO_DELETE){
 												printf("file da chon: %s\n", buff);
 												deleteFile(&files, groups, current_group, buff);
-												printGroup(groups);
-												printFiles(files);
 											}else{
 												printf("No file to delete\n");
 											}

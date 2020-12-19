@@ -930,6 +930,16 @@ void kickMemberOut(singleList *files, singleList groups, char group_name[50], ch
 	char available_group[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 	int number_of_available_groups = getAllFilesOfUserInGroup(files, group_name, username, available_group);
 	singleList files_of_group;
+	//reduce the number of files
+	groups.cur = groups.root;
+	while( groups.cur != NULL){
+		if( strcmp( ((group_struct*)groups.root->element)->group_name, group_name ) == 0){
+			((group_struct*)groups.root->element)->number_of_files -= number_of_available_groups;
+			break;
+		}
+		groups.cur = groups.cur->next;
+	}
+	//end reduce the number of files 
 	files_of_group = getAllFilesOfGroup(groups, group_name);
 	for(int i = 0; i < number_of_available_groups; i++){
 		printf("%s\n",available_group[i]);
@@ -1063,7 +1073,7 @@ singleList searchFileByCategory(singleList files, char category[10]){
 	return file_found;
 }
 
-int updateDownloadTimes(singleList files, char file_name[50]){
+int updateDownloadedTimes(singleList files, char file_name[50]){
 	files.cur = files.root;
 	while (files.cur != NULL)
 	{
@@ -1325,7 +1335,7 @@ void * handleThread(void *my_sock){
 											if(atoi(buff) != NO_FILE_TO_DOWNLOAD){
 												printf("file da chon: %s\n", buff);
 												SendFileToClient(new_socket, buff, current_group);
-												updateDownloadTimes(files, buff);
+												updateDownloadedTimes(files, buff);
 											}else{
 												printf("No file to download.\n");
 											}

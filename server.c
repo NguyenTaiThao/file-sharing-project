@@ -38,7 +38,7 @@ void convertSimpleGroupsToString(singleList simple_group, char str[1000]);
 void convertSimpleFilesToString(singleList simple_file, char str[1000]);
 void convertSimpleUsersToString(singleList simple_user, char str[1000]);
 void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info[200]);
-void createGroup(int sock, singleList *groups, user_struct *loginUser);
+void createGroup(int sock, singleList groups, user_struct *loginUser);
 void sendCode(int sock, int code);
 singleList joinedGroups(singleList users, char username[50]);
 singleList getAllFilesOfGroup(singleList groups, char group_name[50]);
@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
 	createSingleList(&users);
 	
 	readGroupFile(&groups);
+	printGroup(groups);
 	readFileFile(&files);
 	readUserFile(&users);
 	
@@ -150,12 +151,7 @@ void readGroupFile(singleList *groups){
 		singleList files;
 		createSingleList(&files);
 
-		char c = fgetc(fp);
-    	if (c != EOF){
-			int res = fseek( fp, -1, SEEK_CUR );
-			fgets (str_tmp, 100, fp);
-		}else
-        	break;
+		
 
 		//======================end initialize======================================
 		str_tmp[strlen(str_tmp)-1] = '\0';
@@ -194,6 +190,12 @@ void readGroupFile(singleList *groups){
 		group_element->files = files;
 		//=====================end read files=========================================
 		insertEnd(groups, group_element); // add group_element to group_list
+		char c = fgetc(fp);
+    	if (c != EOF){
+			int res = fseek( fp, -1, SEEK_CUR );
+			fgets (str_tmp, 100, fp);
+		}else
+        	break;
 	}
 	fclose(fp);
 }
@@ -628,11 +630,12 @@ void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info
 	}
 }
 
-void createGroup(int sock, singleList *groups, user_struct *loginUser){
+void createGroup(int sock, singleList groups, user_struct *loginUser){
+	printGroup(groups);
 	char buff[100], noti[100], cmd[100];
 	read(sock, buff, 100);
 
-	if(checkExistence(2, *groups, buff) == 1){
+	if(checkExistence(2, groups, buff) == 1){
 		strcpy(noti, "Ten nhom vua nhap da duoc su dung.");
 		send(sock, noti, strlen(noti) + 1, 0);
 	}else{
@@ -650,7 +653,7 @@ void createGroup(int sock, singleList *groups, user_struct *loginUser){
 		group_element->number_of_files = 0;
 		group_element->number_of_members = 0;
 
-		insertEnd(groups, group_element);
+		insertEnd(&groups, group_element);
 
 		//addMember(*groups, group_element->group_name, loginUser->user_name);
 		
@@ -664,7 +667,8 @@ void createGroup(int sock, singleList *groups, user_struct *loginUser){
 
 		strcpy(noti, "Create group successfully.\n");
 		send(sock, noti, strlen(noti) + 1, 0);
-		writeToGroupFile(*groups);
+		printGroup(groups);
+		writeToGroupFile(groups);
 		saveUsers(users);
 	}
 }
@@ -1150,14 +1154,18 @@ void uploadFile(int sock, user_struct *loginUser){
 	file->downloaded_times = 0;
 
 	insertEnd(&files, file);
-
-	singleList fileOfGroup = getAllFilesOfGroup(groups, group_name);
-
-	simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
-	strcpy(file_element->file_name, file_name);
-
-	insertEnd(&fileOfGroup, file_element); 
-
+	groups.cur = groups.root;
+	while(groups.cur != NULL){
+		if(strcmp(group_name, ((group_struct*)groups.cur->element)->group_name) == 0){
+			((group_struct*)groups.cur->element)->number_of_files += 1;
+			//singleList files = ((group_struct*)groups.cur->element)->files;
+			simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+			strcpy(file_element->file_name, file_name);
+			insertEnd(&((group_struct*)groups.cur->element)->files, file_element); 
+		}
+		groups.cur = groups.cur->next;
+	} 
+	writeToGroupFile(groups);
 	saveFiles(files);
 }
 
@@ -1229,7 +1237,7 @@ void * handleThread(void *my_sock){
 							case CREATE_GROUP_REQUEST: //request code: 11
 								/* code */
 								printf("CREATE_GROUP_REQUEST\n");
-								createGroup(new_socket, &groups, loginUser);
+								createGroup(new_socket, groups, loginUser);
 								writeToGroupFile(groups);
 								saveUsers(users);
 								break;

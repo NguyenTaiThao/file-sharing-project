@@ -35,4 +35,7 @@
 #define NON_EXISTENCE_USERNAME 904
 #define NOT_OWNER_OF_GROUP 905
 #define NO_FILE_TO_DELETE 906
+#define NO_FILE_TO_DOWNLOAD 907
+#define NO_GROUP_TO_JOIN 908
+#define NO_MEMBER_TO_KICK 909
 //==================================================//

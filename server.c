@@ -1263,13 +1263,17 @@ void * handleThread(void *my_sock){
 								convertSimpleGroupsToString(un_joined_group, str);
 								send(new_socket , str, strlen(str) + 1, 0 );
 								read( new_socket , buff, 100);
-								printf("nhom da chon: %s\n", buff);
-								if(addMember(groups, buff, loginUser->user_name) + addGroupToJoinedGroups(users, loginUser->user_name, buff) == 2){
-									sendCode(new_socket , JOIN_GROUP_SUCCESS);
-									saveUsers(users);
-									writeToGroupFile(groups);
+								if(atoi(buff) != NO_GROUP_TO_JOIN){
+									printf("nhom da chon: %s\n", buff);
+									if(addMember(groups, buff, loginUser->user_name) + addGroupToJoinedGroups(users, loginUser->user_name, buff) == 2){
+										sendCode(new_socket , JOIN_GROUP_SUCCESS);
+										saveUsers(users);
+										writeToGroupFile(groups);
+									}else{
+										send(new_socket , "something went wrong", 21, 0 );
+									}
 								}else{
-									send(new_socket , "something went wrong", 21, 0 );
+									printf("No group to join.\n");
 								}
 								break;
 							case ACCESS_GROUP_REQUEST: //request code: 13
@@ -1303,8 +1307,13 @@ void * handleThread(void *my_sock){
 											convertSimpleFilesToString(all_files, str);
 											send(new_socket , str, strlen(str) + 1, 0 );
 											read( new_socket , buff, 100);
-											printf("file da chon: %s\n", buff);
-											SendFileToClient(new_socket, buff, current_group);
+											if(atoi(buff) != NO_FILE_TO_DOWNLOAD){
+												printf("file da chon: %s\n", buff);
+												SendFileToClient(new_socket, buff, current_group);
+											}else{
+												printf("No file to download.\n");
+											}
+										
 											break;
 										case DELETE_REQUEST: //request code: 133
 											printf("DELETE_REQUEST\n");
@@ -1342,12 +1351,16 @@ void * handleThread(void *my_sock){
 												convertSimpleUsersToString(members, str);
 												send(new_socket, str, strlen(str)+1, 0);
 												read(new_socket, buff, 100);
-												printf("group = %s, member = %s\n", current_group, buff);
-												kickMemberOut(&files,groups, current_group, buff);
-												singleList members1;
-												createSingleList(&members1);
-												members1 = getAllMembersOfGroup(groups, current_group);
-												printUser(members1);
+												if(atoi(buff) != NO_MEMBER_TO_KICK){
+													printf("group = %s, member = %s\n", current_group, buff);
+													kickMemberOut(&files,groups, current_group, buff);
+													singleList members1;
+													createSingleList(&members1);
+													members1 = getAllMembersOfGroup(groups, current_group);
+													printUser(members1);
+												}else{
+													printf("No member to kick.\n");
+												}
 											}
 											
 											break;

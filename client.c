@@ -356,7 +356,8 @@ void navigation(int sock){
 								printf("Something went wrong!!!\n");
 							}
 						}else{
-							printf("Have not any groups\n");
+							printf("You have joined all groups\n");
+							sendCode(sock, NO_GROUP_TO_JOIN);
 						}
 						break;
 					case 3:
@@ -411,6 +412,7 @@ void navigation(int sock){
 										}
 									}else{
 										printf("This group does not have any files\n");
+										sendCode(sock, NO_FILE_TO_DOWNLOAD);
 									}
 									break;
 								case 3:
@@ -448,7 +450,10 @@ void navigation(int sock){
 											scanf("%d", &selected_member);
 											printf("select = %d\n%s\n", selected_member, available_members[selected_member-1]);
 											send(sock, available_members[selected_member-1] , strlen(available_members[selected_member-1]) + 1 , 0 );
-										}else{printf("This group does not have any members\n");}
+										}else{
+											printf("This group does not have any members\n");
+											sendCode(sock, NO_MEMBER_TO_KICK);
+										}
 									}
 									break;
 								case 6:

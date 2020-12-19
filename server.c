@@ -486,11 +486,10 @@ int addMember(singleList groups, char group_name[50], char username[50]){
 	while(groups.cur != NULL)
 	{
 		if(strcmp(((group_struct*)groups.cur->element)->group_name, group_name) == 0){
-			members = ((group_struct*)groups.cur->element)->members;
 			simple_user_struct *member_element = (simple_user_struct*) malloc(sizeof(simple_user_struct));
 			strcpy(member_element->user_name, username);
-			insertEnd(&members, member_element);
-			((group_struct*)groups.cur->element)->number_of_members++;
+			insertEnd(&((group_struct*)groups.cur->element)->members, member_element);
+			((group_struct*)groups.cur->element)->number_of_members += 1;
 			return 1;
 		}
 		groups.cur = groups.cur->next;
@@ -1064,6 +1063,18 @@ singleList searchFileByCategory(singleList files, char category[10]){
 	return file_found;
 }
 
+int updateDownloadTimes(singleList files, char file_name[50]){
+	files.cur = files.root;
+	while (files.cur != NULL)
+	{
+		if( strcmp( ((file_struct*)files.cur->element)->name, file_name) == 0 ){
+			((file_struct*)files.cur->element)->downloaded_times += 1;
+		}
+		files.cur = files.cur->next
+	}
+	
+}
+
 void signUp(int sock, singleList *users){
 	char buff[BUFF_SIZE], username[50], password[50];
 	int size;
@@ -1314,6 +1325,7 @@ void * handleThread(void *my_sock){
 											if(atoi(buff) != NO_FILE_TO_DOWNLOAD){
 												printf("file da chon: %s\n", buff);
 												SendFileToClient(new_socket, buff, current_group);
+												updateDownloadTimes(files, buff);
 											}else{
 												printf("No file to download.\n");
 											}

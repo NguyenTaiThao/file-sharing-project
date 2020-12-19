@@ -335,6 +335,8 @@ void navigation(int sock){
 					case 1:
 						sendCode(sock, CREATE_GROUP_REQUEST);
 						createGroup(sock);
+						read(sock, buffer, 1000);
+						printf("%s\n", buffer);
 						break;
 					case 2:
 						printf("========================== Available Group ==========================\n");
@@ -383,19 +385,23 @@ void navigation(int sock){
 									char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 									int number_of_available_files = printAvailableElements(buffer, available_files);
 									int selected_file;
-									printf("Which file do you want to download? (1-%d): ", number_of_available_files);
-									scanf("%d", &selected_file);
-									send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
-									if(receiveFile(sock) == 1){
-										printf("Open the file? (Y/n): ");
-										char choice[10], command[100];
-										scanf("%s", choice);
-										if(strcmp(choice, "Y") == 0){
-											command[0] = '\0';
-											strcat(command, "xdg-open ./client_source/");
-											strcat(command, available_files[selected_file-1]);
-											system(command);
+									if(number_of_available_files > 0){
+										printf("Which file do you want to download? (1-%d): ", number_of_available_files);
+										scanf("%d", &selected_file);
+										send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+										if(receiveFile(sock) == 1){
+											printf("Open the file? (Y/n): ");
+											char choice[10], command[100];
+											scanf("%s", choice);
+											if(strcmp(choice, "Y") == 0){
+												command[0] = '\0';
+												strcat(command, "xdg-open ./client_source/");
+												strcat(command, available_files[selected_file-1]);
+												system(command);
+											}
 										}
+									}else{
+										printf("This group does not have any files\n");
 									}
 									break;
 								case 3:
@@ -403,9 +409,10 @@ void navigation(int sock){
 									printf("==================== Available Files =====================\n");
 									read(sock, buffer, 1000); 
 									number_of_available_files = printAvailableElements(buffer, available_files);
-									printf("Which file do you want to delete? (1-%d): ", number_of_available_files);
-									scanf("%d", &selected_file);
-									send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+									if(number_of_available_files > 0){
+										printf("Which file do you want to delete? (1-%d): ", number_of_available_files);
+										scanf("%d", &selected_file);
+										send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
 									break;
 								case 4:
 									printf("======================= All Files ========================\n");

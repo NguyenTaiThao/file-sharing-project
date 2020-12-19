@@ -19,4 +19,11 @@ thao3
 thao4
 123
 1
-0
+3
+anh
+yeu
+hihi
+em
+anh yeu em nhieu nhieu
+1
+2

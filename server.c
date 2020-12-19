@@ -984,7 +984,6 @@ void kickMemberOut(singleList *files, singleList groups, singleList users, char 
 		if((*files).cur == NULL) break;
 		(*files).cur = (*files).cur->next;
 	}
-	printf("pl\n");
 	//delete user in singleList groups
 	groups.cur = groups.root;
 	while( groups.cur != NULL){
@@ -1017,6 +1016,7 @@ void kickMemberOut(singleList *files, singleList groups, singleList users, char 
 	while (users.cur != NULL)
 	{
 		if( strcmp(((user_struct*)users.cur->element)->user_name, username) == 0){
+			((user_struct*)users.cur->element)->count_group -= 1;
 			singleList joined_groups;
 			createSingleList(&joined_groups);
 			joined_groups = ((user_struct*)users.cur->element)->joined_groups;

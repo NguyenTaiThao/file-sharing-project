@@ -241,9 +241,19 @@ void readUserFile(singleList* users){
 		exit(EXIT_FAILURE);
 	}
 
-	while (fscanf(f, "%s %s %d\n", username, password, &status) > 0) {
+	while (1) {
 		singleList groups;
 		createSingleList(&groups);
+
+		fgets(username, 50, f);
+		username[strlen(username) -1 ] = '\0';
+		printf("scan: %s\n", username);
+
+		fgets(password, 50, f);
+		password[strlen(password) -1 ] = '\0';
+		printf("scan: %s\n", password);
+
+		fscanf(f,"%d\n", &status);
 
 		if(fscanf(f, "%d\n", &count_group) > 0){
 			for(int i = 0; i < count_group; i++){
@@ -260,6 +270,14 @@ void readUserFile(singleList* users){
 		user->count_group = count_group;
 
 		insertEnd(users, user);
+
+		char c = fgetc(f);
+    	if (c != EOF){
+			int res = fseek( f, -1, SEEK_CUR );
+		}else{
+			printf("scan: stop\n");
+        	break;
+		}
 	}
     fclose(f);
 

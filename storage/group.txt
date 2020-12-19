@@ -1,7 +1,11 @@
 anh yeu em
 thao
 0
-0
+4
+1.png
+anh yeu e
+2.jpg
+3.png
 group 1
 thao
 0
@@ -17,6 +21,4 @@ dung
 ga
 thao
 0
-2
-anhyeuem.png
-emyeuanh.jpg
+0

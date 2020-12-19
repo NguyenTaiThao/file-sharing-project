@@ -562,7 +562,8 @@ void uploadFile(int sock, char groupName[50]){
 	read(sock, buffer, BUFF_SIZE);
 
 	if(atoi(buffer) == UPLOAD_SUCCESS){
-		send(sock, groupName, sizeof(groupName), 0);
+		printf("group_name: %s %ld\n", groupName, sizeof(groupName));
+		send(sock, groupName, strlen(groupName) + 1, 0);
 
 		printf("Nhap ten file: ");
 		clearBuff();

@@ -765,12 +765,10 @@ void* SendFileToClient(int new_socket, char fname[50], char group_name[50])
         /* First read file in chunks of 256 bytes */
         unsigned char buff[1024]={0};
         int nread = fread(buff,1,1024,fp);
-        //printf("Bytes read %d \n", nread);        
 
         /* If read was success, send data. */
         if(nread > 0)
         {
-            //printf("Sending \n");
             write(new_socket, buff, nread);
         }
         if (nread < 1024)
@@ -778,7 +776,6 @@ void* SendFileToClient(int new_socket, char fname[50], char group_name[50])
             if (feof(fp))
             {
                 printf("End of file\n");
-				// send(new_socket, "ENDOFFILE", strlen("ENDOFFILE"), 0);
             }
             if (ferror(fp))
                 printf("Error reading\n");
@@ -1128,7 +1125,7 @@ void uploadFile(int sock, user_struct *loginUser){
 
 	read(sock, buff, BUFF_SIZE);
 	strcpy(group_name, buff);
-
+	printf("group_name: %s\n - %ld", buff, strlen(buff));
 	read(sock, buff, BUFF_SIZE);
 	buff[strlen(buff) - 1] = '\0';
 	strcpy(file_name, buff);
@@ -1176,7 +1173,6 @@ int receiveUploadedFile(int sock, char filePath[100]){
 
 	printf("Receiving file...\n");
 
-	printf("Uploaded file: %s\n", filePath);
 	fp = fopen(filePath, "ab"); 
 	if(NULL == fp)
 	{

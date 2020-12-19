@@ -477,7 +477,7 @@ void navigation(int sock){
 }
 
 void createGroup(int sock){
-	char group_name[50];
+	char group_name[50], buff[BUFF_SIZE];
 	printf("Nhap ten nhom: ");
 
 	clearBuff();
@@ -485,6 +485,8 @@ void createGroup(int sock){
 	fgets(group_name, 50, stdin);
 	group_name[strlen(group_name) - 1] = '\0';
 	send(sock, group_name, strlen(group_name) + 1, 0);
+	read(sock, buff, BUFF_SIZE);
+	printf("%s\n", buff);
 }
 
 void sendCode(int sock, int code){

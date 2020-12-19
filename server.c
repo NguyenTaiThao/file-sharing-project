@@ -935,6 +935,7 @@ void kickMemberOut(singleList *files, singleList groups, char group_name[50], ch
 	while( groups.cur != NULL){
 		if( strcmp( ((group_struct*)groups.root->element)->group_name, group_name ) == 0){
 			((group_struct*)groups.root->element)->number_of_files -= number_of_available_groups;
+			((group_struct*)groups.root->element)->number_of_members -= 1;
 			break;
 		}
 		groups.cur = groups.cur->next;

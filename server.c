@@ -1114,6 +1114,28 @@ singleList searchFileByCategory(singleList files, char category[10]){
 	return file_found;
 }
 
+singleList searchFileName(singleList files, char file_name[10]){
+	char full_name[50];
+	full_name[0] = '\0';
+	singleList file_found;
+	createSingleList(&file_found);
+	files.cur = files.root;
+	while (files.cur != NULL)
+	{
+		strcpy(full_name, ((file_struct*)files.cur->element)->name);
+		if(strstr(full_name, file_name) != NULL)
+		{
+			simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
+			strcpy(file_element->file_name, full_name);
+			insertEnd(&file_found, file_element);
+		}
+		files.cur = files.cur->next;
+	}
+	printFile(file_found);
+	return file_found;
+}
+
+
 int updateDownloadedTimes(singleList files, char file_name[50]){
 	files.cur = files.root;
 	while (files.cur != NULL)

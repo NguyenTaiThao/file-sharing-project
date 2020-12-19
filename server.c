@@ -244,6 +244,14 @@ void readUserFile(singleList* users){
 		singleList groups;
 		createSingleList(&groups);
 
+		char c = fgetc(f);
+    	if (c != EOF){
+			int res = fseek( f, -1, SEEK_CUR );
+		}else{
+			printf("scan: stop\n");
+        	break;
+		}
+
 		fgets(username, 50, f);
 		username[strlen(username) -1 ] = '\0';
 		printf("scan: %s\n", username);
@@ -270,13 +278,6 @@ void readUserFile(singleList* users){
 
 		insertEnd(users, user);
 
-		char c = fgetc(f);
-    	if (c != EOF){
-			int res = fseek( f, -1, SEEK_CUR );
-		}else{
-			printf("scan: stop\n");
-        	break;
-		}
 	}
     fclose(f);
 

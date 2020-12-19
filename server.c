@@ -957,10 +957,14 @@ void kickMemberOut(singleList *files, singleList groups, char group_name[50], ch
 		if( strcmp( ((file_struct*)(*files).root->element)->owner, username) == 0 && strcmp( ((file_struct*)(*files).root->element)->group, group_name) == 0){
 			deleteBegin(files);
 		}else{
-			while ((*files).cur != NULL && strcmp( ((file_struct*)(*files).cur->element)->owner, username) != 0 && strcmp( ((file_struct*)(*files).root->element)->group, group_name) != 0)
+			while ((*files).cur != NULL)
 			{
-				(*files).prev = (*files).cur;
-				(*files).cur = (*files).cur->next;
+				if( strcmp( ((file_struct*)(*files).cur->element)->owner, username) == 0 && strcmp( ((file_struct*)(*files).root->element)->group, group_name) == 0){
+					break;
+				}else{
+					(*files).prev = (*files).cur;
+					(*files).cur = (*files).cur->next;
+				}
 			}
 			if((*files).cur != NULL){
 				node *newNode = (*files).cur;

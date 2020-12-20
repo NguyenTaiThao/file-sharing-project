@@ -564,7 +564,6 @@ void* SendFileToServer(int new_socket, char fname[50])
         /* First read file in chunks of 256 bytes */
         unsigned char buff[1024]={0};
         int nread = fread(buff,1,1024,fp);
-        //printf("Bytes read %d \n", nread);        
 
         /* If read was success, send data. */
         if(nread > 0)
@@ -592,7 +591,6 @@ int uploadFile(int sock, char groupName[50]){
 	read(sock, buffer, BUFF_SIZE);
 	if(atoi(buffer) != MEMBER_WAS_KICKED){
 		if(atoi(buffer) == UPLOAD_SUCCESS){
-			printf("group_name: %s %ld\n", groupName, sizeof(groupName));
 			send(sock, groupName, strlen(groupName) + 1, 0);
 
 			printf("Nhap ten file: ");

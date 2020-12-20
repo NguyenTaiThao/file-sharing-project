@@ -39,4 +39,5 @@
 #define NO_FILE_TO_DOWNLOAD 907
 #define NO_GROUP_TO_JOIN 908
 #define NO_MEMBER_TO_KICK 909
+#define NO_GROUP_TO_ACCESS 910
 //==================================================//

@@ -378,6 +378,7 @@ void navigation(int sock){
 							}
 						}else{
 							printf("You have not joined any groups.\n");
+							sendCode(sock, NO_GROUP_TO_ACCESS);
 							z3 = 6;
 						}
 						while(z3 != 6){

@@ -78,7 +78,7 @@ void navigation(int sock);
 void signUp(int sock);
 int signIn(int sock);
 void createGroup(int sock);
-void uploadFile(int sock, char groupName[50]);
+int uploadFile(int sock, char groupName[50]);
 void sendCode(int sock, int code);
 void clearBuff();
 
@@ -384,76 +384,100 @@ void navigation(int sock){
 							z3 = menu3(available_group[selected_group-1]);
 							switch (z3)
 							{
-								case 1:{
-									uploadFile(sock, available_group[selected_group-1]);
+								case 1:
+									if( uploadFile(sock, available_group[selected_group-1]) == 0){
+										z3 = 6;
+									}
 									break;
-								}
 								case 2:
 									sendCode(sock, DOWNLOAD_REQUEST);
 									printf("==================== Available Files =====================\n");
 									read(sock, buffer, 1000);
-									char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
-									int number_of_available_files = printAvailableElements(buffer, available_files);
-									int selected_file;
-									if(number_of_available_files > 0){
-										printf("Which file do you want to download? (1-%d): ", number_of_available_files);
-										scanf("%d", &selected_file);
-										send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
-										if(receiveFile(sock) == 1){
-											printf("Open the file? (Y/n): ");
-											char choice[10], command[100];
-											scanf("%s", choice);
-											if(strcmp(choice, "Y") == 0){
-												command[0] = '\0';
-												strcat(command, "xdg-open ./client_source/");
-												strcat(command, available_files[selected_file-1]);
-												system(command);
+									if(atoi(buffer) != MEMBER_WAS_KICKED){
+										char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+										int number_of_available_files = printAvailableElements(buffer, available_files);
+										int selected_file;
+										if(number_of_available_files > 0){
+											printf("Which file do you want to download? (1-%d): ", number_of_available_files);
+											scanf("%d", &selected_file);
+											send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+											if(receiveFile(sock) == 1){
+												printf("Open the file? (Y/n): ");
+												char choice[10], command[100];
+												scanf("%s", choice);
+												if(strcmp(choice, "Y") == 0){
+													command[0] = '\0';
+													strcat(command, "xdg-open ./client_source/");
+													strcat(command, available_files[selected_file-1]);
+													system(command);
+												}
 											}
+										}else{
+											printf("This group does not have any files\n");
+											sendCode(sock, NO_FILE_TO_DOWNLOAD);
 										}
 									}else{
-										printf("This group does not have any files\n");
-										sendCode(sock, NO_FILE_TO_DOWNLOAD);
+										printf("You have been kicked out of this group.\n");
+										z3 = 6;
 									}
 									break;
 								case 3:
 									sendCode(sock, DELETE_REQUEST);
 									printf("==================== Available Files =====================\n");
 									read(sock, buffer, 1000); 
-									number_of_available_files = printAvailableElements(buffer, available_files);
-									if(number_of_available_files > 0){
-										printf("Which file do you want to delete? (1-%d): ", number_of_available_files);
-										scanf("%d", &selected_file);
-										send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+									if(atoi(buffer) != MEMBER_WAS_KICKED){
+										char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+										int number_of_available_files = printAvailableElements(buffer, available_files);
+										if(number_of_available_files > 0){
+											int selected_file;
+											printf("Which file do you want to delete? (1-%d): ", number_of_available_files);
+											scanf("%d", &selected_file);
+											send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+										}else{
+											printf("This group does not have any files");
+											sendCode(sock, NO_FILE_TO_DELETE);
+										}
 									}else{
-										printf("This group does not have any files");
-										sendCode(sock, NO_FILE_TO_DELETE);
+										printf("You have been kicked out of this group.\n");
+										z3 = 6;
 									}
 									break;
 								case 4:
 									printf("======================= All Files ========================\n");
 									sendCode(sock, VIEW_FILES_REQUEST);
 									read(sock, buffer, 1000); 
-									number_of_available_files = printAvailableElements(buffer, available_files);
+									if(atoi(buffer) != MEMBER_WAS_KICKED){
+										char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+										int number_of_available_files = printAvailableElements(buffer, available_files);
+									}else{
+										printf("You have been kicked out of this group.\n");
+										z3 = 6;
+									}
 									break;
 								case 5:
 									sendCode(sock, KICK_MEMBER_REQUEST);
 									read(sock, buffer, 1000);
-									if(atoi(buffer) == NOT_OWNER_OF_GROUP){
-										printf("!!! Only the administrator of group can do this\n");
-									}else{
-										printf("====================== All Members =======================\n");
-										char available_members[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
-										int number_of_available_members = printAvailableElements(buffer, available_members);
-										if(number_of_available_members > 0){
-											printf("Which member do you want to kick? (1-%d): ", number_of_available_members);
-											int selected_member;
-											scanf("%d", &selected_member);
-											printf("select = %d\n%s\n", selected_member, available_members[selected_member-1]);
-											send(sock, available_members[selected_member-1] , strlen(available_members[selected_member-1]) + 1 , 0 );
+									if(atoi(buffer) != MEMBER_WAS_KICKED){
+										if(atoi(buffer) == NOT_OWNER_OF_GROUP){
+											printf("!!! Only the administrator of group can do this\n");
 										}else{
-											printf("This group does not have any members\n");
-											sendCode(sock, NO_MEMBER_TO_KICK);
+											printf("====================== All Members =======================\n");
+											char available_members[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
+											int number_of_available_members = printAvailableElements(buffer, available_members);
+											if(number_of_available_members > 0){
+												printf("Which member do you want to kick? (1-%d): ", number_of_available_members);
+												int selected_member;
+												scanf("%d", &selected_member);
+												printf("select = %d\n%s\n", selected_member, available_members[selected_member-1]);
+												send(sock, available_members[selected_member-1] , strlen(available_members[selected_member-1]) + 1 , 0 );
+											}else{
+												printf("This group does not have any members\n");
+												sendCode(sock, NO_MEMBER_TO_KICK);
+											}
 										}
+									}else{
+										printf("You have been kicked out of this group.\n");
+										z3 = 6;
 									}
 									break;
 								case 6:
@@ -560,38 +584,43 @@ void* SendFileToServer(int new_socket, char fname[50])
     }
 }
 
-void uploadFile(int sock, char groupName[50]){
+int uploadFile(int sock, char groupName[50]){
 	char fileName[50], filePath[100];
 	char buffer[BUFF_SIZE];
 
 	sendCode(sock, UPLOAD_REQUEST);
 	read(sock, buffer, BUFF_SIZE);
+	if(atoi(buffer) != MEMBER_WAS_KICKED){
+		if(atoi(buffer) == UPLOAD_SUCCESS){
+			printf("group_name: %s %ld\n", groupName, sizeof(groupName));
+			send(sock, groupName, strlen(groupName) + 1, 0);
 
-	if(atoi(buffer) == UPLOAD_SUCCESS){
-		printf("group_name: %s %ld\n", groupName, sizeof(groupName));
-		send(sock, groupName, strlen(groupName) + 1, 0);
+			printf("Nhap ten file: ");
+			clearBuff();
+			fgets(fileName, 50, stdin);
+			send(sock, fileName, sizeof(fileName), 0);
 
-		printf("Nhap ten file: ");
-		clearBuff();
-		fgets(fileName, 50, stdin);
-		send(sock, fileName, sizeof(fileName), 0);
+			do{
+				printf("Nhap duong dan toi file: ");
+				fgets(buffer, 100, stdin);
+				buffer[strlen(buffer) - 1] = '\0';
+				if(fopen(buffer, "r") != NULL){
+					break;
+				}else{
+					printf("File khong hop le!!\n");
+				}
+			}while(1);
+			filePath[0] = '\0';
+			strcat(filePath, buffer);
+			SendFileToServer(sock, filePath);
 
-		do{
-			printf("Nhap duong dan toi file: ");
-			fgets(buffer, 100, stdin);
-			buffer[strlen(buffer) - 1] = '\0';
-			if(fopen(buffer, "r") != NULL){
-				break;
-			}else{
-				printf("File khong hop le!!\n");
-			}
-		}while(1);
-		filePath[0] = '\0';
-		strcat(filePath, buffer);
-		SendFileToServer(sock, filePath);
-
-		
+			
+		}else{
+			printf("He thong dang bao tri!!\n");
+		}
 	}else{
-		printf("He thong dang bao tri!!\n");
+		printf("You have been kicked out of this group!!!\n");
+		return 0;
 	}
+	return 1;
 }

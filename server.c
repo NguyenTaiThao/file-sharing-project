@@ -1057,7 +1057,7 @@ singleList searchFileByCategory(singleList files, char category[10]){
 		while (files.cur != NULL)
 		{
 			strcpy(file_name, ((file_struct*)files.cur->element)->name);
-			if(strstr(file_name, ".jpg") == NULL || strstr(file_name, ".png") == NULL || strstr(file_name, ".jepg") == NULL || strstr(file_name, ".JPG") == NULL || strstr(file_name, ".PNG") == NULL || strstr(file_name, ".txt") == NULL || strstr(file_name, ".mp3") == NULL || strstr(file_name, ".mp4") == NULL)
+			if(strstr(file_name, ".jpg") == NULL && strstr(file_name, ".png") == NULL && strstr(file_name, ".jepg") == NULL && strstr(file_name, ".JPG") == NULL && strstr(file_name, ".PNG") == NULL && strstr(file_name, ".txt") == NULL && strstr(file_name, ".mp3") == NULL && strstr(file_name, ".mp4") == NULL)
 			{
 				simple_file_struct *file_element = (simple_file_struct*) malloc(sizeof(simple_file_struct));
 				strcpy(file_element->file_name, file_name);
@@ -1114,7 +1114,7 @@ singleList searchFileByCategory(singleList files, char category[10]){
 	return file_found;
 }
 
-singleList searchFileName(singleList files, char file_name[10]){
+singleList searchFileByName(singleList files, char file_name[10]){
 	char full_name[50];
 	full_name[0] = '\0';
 	singleList file_found;
@@ -1133,6 +1133,25 @@ singleList searchFileName(singleList files, char file_name[10]){
 	}
 	printFile(file_found);
 	return file_found;
+}
+
+int isUserAMember(singleList users, char group_name[50], char username[50]){
+	users.cur = users.root;
+	while(users.cur != NULL){
+		if( strcmp( ((user_struct*)users.cur->element)->user_name, username ) == 0){
+			((user_struct*)users.cur->element)->joined_groups.cur = ((user_struct*)users.cur->element)->joined_groups.root;
+			while (((user_struct*)users.cur->element)->joined_groups.cur != NULL)
+			{
+				if(strcmp(((simple_group_struct*)((user_struct*)users.cur->element)->joined_groups.cur->element)->group_name, group_name) == 0){
+					return 1;
+				}
+				((user_struct*)users.cur->element)->joined_groups.cur = ((user_struct*)users.cur->element)->joined_groups.cur->next;
+			}
+			
+		}
+		users.cur = users.cur->next;
+	}
+	return 0;
 }
 
 
@@ -1383,73 +1402,97 @@ void * handleThread(void *my_sock){
 									switch (REQUEST)
 									{
 										case UPLOAD_REQUEST: //request code: 131
-											printf("UPLOAD_REQUEST\n");
-											uploadFile(new_socket, loginUser);
-											writeToGroupFile(groups);
+											if(isUserAMember(users, current_group, loginUser->user_name) == 1){
+												printf("UPLOAD_REQUEST\n");
+												uploadFile(new_socket, loginUser);
+												writeToGroupFile(groups);
+											}else{
+												printf("Kicked.\n");
+												sendCode(new_socket, MEMBER_WAS_KICKED);
+											}
 											break;
 										case DOWNLOAD_REQUEST: //request code: 132
-											printf("DOWNLOAD_REQUEST\n");
-											singleList all_files;
-											createSingleList(&all_files);
-											all_files = getAllFilesOfGroup(groups, current_group);
-											convertSimpleFilesToString(all_files, str);
-											send(new_socket , str, strlen(str) + 1, 0 );
-											read( new_socket , buff, 100);
-											if(atoi(buff) != NO_FILE_TO_DOWNLOAD){
-												printf("file da chon: %s\n", buff);
-												SendFileToClient(new_socket, buff, current_group);
-												updateDownloadedTimes(files, buff);
+											if(isUserAMember(users, current_group, loginUser->user_name) == 1){
+												printf("DOWNLOAD_REQUEST\n");
+												singleList all_files;
+												createSingleList(&all_files);
+												all_files = getAllFilesOfGroup(groups, current_group);
+												convertSimpleFilesToString(all_files, str);
+												send(new_socket , str, strlen(str) + 1, 0 );
+												read( new_socket , buff, 100);
+												if(atoi(buff) != NO_FILE_TO_DOWNLOAD){
+													printf("file da chon: %s\n", buff);
+													SendFileToClient(new_socket, buff, current_group);
+													updateDownloadedTimes(files, buff);
+												}else{
+													printf("No file to download.\n");
+												}
 											}else{
-												printf("No file to download.\n");
+												printf("kicked\n");
+												sendCode(new_socket, MEMBER_WAS_KICKED);
 											}
-										
 											break;
 										case DELETE_REQUEST: //request code: 133
-											printf("DELETE_REQUEST\n");
-											singleList files_can_delete;
-											createSingleList(&files_can_delete);
-											files_can_delete = getFilesCanDelete(files, groups, current_group ,loginUser->user_name);
-											convertSimpleFilesToString(files_can_delete, str);
-											send(new_socket , str, strlen(str) + 1, 0 );
-											read( new_socket , buff, 100);
-											if(atoi(buff) != NO_FILE_TO_DELETE){
-												printf("file da chon: %s\n", buff);
-												deleteFile(&files, groups, current_group, buff);
+											if(isUserAMember(users, current_group, loginUser->user_name) == 1){
+												printf("DELETE_REQUEST\n");
+												singleList files_can_delete;
+												createSingleList(&files_can_delete);
+												files_can_delete = getFilesCanDelete(files, groups, current_group ,loginUser->user_name);
+												convertSimpleFilesToString(files_can_delete, str);
+												send(new_socket , str, strlen(str) + 1, 0 );
+												read( new_socket , buff, 100);
+												if(atoi(buff) != NO_FILE_TO_DELETE){
+													printf("file da chon: %s\n", buff);
+													deleteFile(&files, groups, current_group, buff);
+												}else{
+													printf("No file to delete\n");
+												}
 											}else{
-												printf("No file to delete\n");
+												printf("kicked\n");
+												sendCode(new_socket, MEMBER_WAS_KICKED);
 											}
 											break;
 										case VIEW_FILES_REQUEST: //request code: 134
-										/* code */
-											printf("VIEW_FILES_REQUEST\n");
-											all_files = getAllFilesOfGroup(groups, current_group);
-											convertSimpleFilesToString(all_files, str);
-											printf("%s\n", str);
-											send(new_socket , str, strlen(str) + 1, 0 );
+											if(isUserAMember(users, current_group, loginUser->user_name) == 1){
+												printf("VIEW_FILES_REQUEST\n");
+												singleList all_files;
+												createSingleList(&all_files);
+												all_files = getAllFilesOfGroup(groups, current_group);
+												convertSimpleFilesToString(all_files, str);
+												printf("%s\n", str);
+												send(new_socket , str, strlen(str) + 1, 0 );
+											}else{
+												printf("kicked");
+												sendCode(new_socket, MEMBER_WAS_KICKED);
+											}
 											break;
 										case KICK_MEMBER_REQUEST:
-											printf("KICK_MEMBER_REQUEST\n");
-											if(isOwnerOfGroup(groups, current_group,loginUser->user_name) == 0){
-												sendCode(new_socket, NOT_OWNER_OF_GROUP);
-											}else{
-												singleList members;
-												createSingleList(&members);
-												members = getAllMembersOfGroup(groups, current_group);
-												convertSimpleUsersToString(members, str);
-												send(new_socket, str, strlen(str)+1, 0);
-												read(new_socket, buff, 100);
-												if(atoi(buff) != NO_MEMBER_TO_KICK){
-													printf("group = %s, member = %s\n", current_group, buff);
-													kickMemberOut(&files,groups, users,current_group, buff);
-													singleList members1;
-													createSingleList(&members1);
-													members1 = getAllMembersOfGroup(groups, current_group);
-													printUser(members1);
+											if(isUserAMember(users, current_group, loginUser->user_name) == 1){
+												printf("KICK_MEMBER_REQUEST\n");
+												if(isOwnerOfGroup(groups, current_group,loginUser->user_name) == 0){
+													sendCode(new_socket, NOT_OWNER_OF_GROUP);
 												}else{
-													printf("No member to kick.\n");
+													singleList members;
+													createSingleList(&members);
+													members = getAllMembersOfGroup(groups, current_group);
+													convertSimpleUsersToString(members, str);
+													send(new_socket, str, strlen(str)+1, 0);
+													read(new_socket, buff, 100);
+													if(atoi(buff) != NO_MEMBER_TO_KICK){
+														printf("group = %s, member = %s\n", current_group, buff);
+														kickMemberOut(&files,groups, users,current_group, buff);
+														singleList members1;
+														createSingleList(&members1);
+														members1 = getAllMembersOfGroup(groups, current_group);
+														printUser(members1);
+													}else{
+														printf("No member to kick.\n");
+													}
 												}
+											}else{
+												printf("kicked");
+												sendCode(new_socket, MEMBER_WAS_KICKED);
 											}
-											
 											break;
 										case BACK_REQUEST: //request code: 135
 										/* code */

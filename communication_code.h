@@ -25,6 +25,7 @@
 #define ACCESS_GROUP_SUCCESS 805
 #define LOGOUT_SUCCESS 806
 #define UPLOAD_SUCCESS 807
+#define MEMBER_WAS_KICKED 808
 //==================================================//
 
 //===================== INVALID ====================//

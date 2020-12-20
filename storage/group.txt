@@ -1,6 +1,7 @@
 anh yeu em
 thao
-0
+1
+trung
 4
 1.asd
 3.png

@@ -17,9 +17,9 @@ ga
 trung
 132
 1
-2
+1
 group trung
-2
-thao
+thao1
+123
 1
 0

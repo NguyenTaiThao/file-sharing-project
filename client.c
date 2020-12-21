@@ -378,6 +378,7 @@ void navigation(int sock){
 							}
 						}else{
 							printf("You have not joined any groups.\n");
+							sendCode(sock, NO_GROUP_TO_ACCESS);
 							z3 = 6;
 						}
 						while(z3 != 6){
@@ -491,17 +492,24 @@ void navigation(int sock){
 							break;
 					case 4:
 						sendCode(sock, SEARCH_FILE_REQUEST);
-						char category[6][10] = {"text","image","audio","video","other"};
+						char category[7][10] = {"text","image","audio","video","other","name"};
 						printf("1. Text\n");
 						printf("2. Image\n");
 						printf("3. Audio\n");
 						printf("4. Video\n");
 						printf("5. Other\n");
-						printf("6. Back\n");
+						printf("6. Search by name\n");
+						printf("7. Back\n");
 						printf("==========================================================\n");
 						printf("=> Enter your choice: ");
 						int category_choice;
 						scanf("%d", &category_choice);
+						if(category_choice == 6){
+							char search_name[50];
+							printf("Enter the filename: ");
+							scanf("%s", search_name);
+							send(sock, search_name , strlen(search_name) + 1 , 0 );
+						}
 						send(sock, category[category_choice-1] , strlen(category[category_choice-1]) + 1 , 0 );
 						read(sock, buffer, 1000);
 						char available_files[60][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};

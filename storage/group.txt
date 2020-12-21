@@ -1,6 +1,5 @@
 anh yeu em
 thao
-1
-trung
+0
 1
 t.txt

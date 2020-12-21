@@ -599,23 +599,31 @@ int uploadFile(int sock, char groupName[50]){
 	read(sock, buffer, BUFF_SIZE);
 	if(atoi(buffer) != MEMBER_WAS_KICKED){
 		if(atoi(buffer) == UPLOAD_SUCCESS){
-			send(sock, groupName, strlen(groupName) + 1, 0);
-
-			printf("Nhap ten file: ");
 			clearBuff();
-			fgets(fileName, 50, stdin);
-			send(sock, fileName, sizeof(fileName), 0);
+			while(1){
+				send(sock, groupName, strlen(groupName) + 1, 0);
 
-			do{
-				printf("Nhap duong dan toi file: ");
-				fgets(buffer, 100, stdin);
-				buffer[strlen(buffer) - 1] = '\0';
-				if(fopen(buffer, "r") != NULL){
-					break;
+				printf("Nhap ten file: ");
+				fgets(fileName, 50, stdin);
+
+				send(sock, fileName, sizeof(fileName), 0);
+				read(sock, buffer, BUFF_SIZE);
+				if(atoi(buffer) == EXISTENCE_FILE_NAME){
+					printf("Ten file khong kha dung.\n");
 				}else{
-					printf("File khong hop le!!\n");
+					do{
+						printf("Nhap duong dan toi file: ");
+						fgets(buffer, 100, stdin);
+						buffer[strlen(buffer) - 1] = '\0';
+						if(fopen(buffer, "r") != NULL){
+							break;
+						}else{
+							printf("File khong hop le!!\n");
+						}
+					}while(1);
+					break;
 				}
-			}while(1);
+			}
 			filePath[0] = '\0';
 			strcat(filePath, buffer);
 			SendFileToServer(sock, filePath);

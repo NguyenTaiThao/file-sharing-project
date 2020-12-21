@@ -1253,12 +1253,20 @@ void uploadFile(int sock, user_struct *loginUser){
 
 	sendCode(sock, UPLOAD_SUCCESS);
 
-	read(sock, buff, BUFF_SIZE);
-	strcpy(group_name, buff);
-	printf("group_name: %s\n - %ld", buff, strlen(buff));
-	read(sock, buff, BUFF_SIZE);
-	buff[strlen(buff) - 1] = '\0';
-	strcpy(file_name, buff);
+	while(1){
+		read(sock, buff, BUFF_SIZE);
+		strcpy(group_name, buff);
+		printf("group_name: %s\n - %ld", buff, strlen(buff));
+		read(sock, buff, BUFF_SIZE);
+		buff[strlen(buff) - 1] = '\0';
+		strcpy(file_name, buff);
+		if(checkExistence(3, files, file_name) == 1){
+			sendCode(sock, EXISTENCE_FILE_NAME);
+		}else{
+			sendCode(sock, UPLOAD_SUCCESS);
+			break;
+		}
+	}
 
 	filePath[0] = '\0';
 	strcat(filePath, "./files/");
@@ -1416,6 +1424,7 @@ void * handleThread(void *my_sock){
 												}else{
 													printf("Kicked.\n");
 													sendCode(new_socket, MEMBER_WAS_KICKED);
+													REQUEST = BACK_REQUEST;
 												}
 												break;
 											case DOWNLOAD_REQUEST: //request code: 132
@@ -1437,6 +1446,7 @@ void * handleThread(void *my_sock){
 												}else{
 													printf("kicked\n");
 													sendCode(new_socket, MEMBER_WAS_KICKED);
+													REQUEST = BACK_REQUEST;
 												}
 												break;
 											case DELETE_REQUEST: //request code: 133
@@ -1457,6 +1467,7 @@ void * handleThread(void *my_sock){
 												}else{
 													printf("kicked\n");
 													sendCode(new_socket, MEMBER_WAS_KICKED);
+													REQUEST = BACK_REQUEST;
 												}
 												break;
 											case VIEW_FILES_REQUEST: //request code: 134
@@ -1471,6 +1482,7 @@ void * handleThread(void *my_sock){
 												}else{
 													printf("kicked");
 													sendCode(new_socket, MEMBER_WAS_KICKED);
+													REQUEST = BACK_REQUEST;
 												}
 												break;
 											case KICK_MEMBER_REQUEST:
@@ -1499,6 +1511,7 @@ void * handleThread(void *my_sock){
 												}else{
 													printf("kicked");
 													sendCode(new_socket, MEMBER_WAS_KICKED);
+													REQUEST = BACK_REQUEST;
 												}
 												break;
 											case BACK_REQUEST: //request code: 135

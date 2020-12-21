@@ -1,5 +1,6 @@
 anh yeu em
 thao
-0
 1
-anh yeu e
+trung
+1
+t.txt

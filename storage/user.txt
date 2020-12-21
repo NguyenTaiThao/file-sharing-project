@@ -3,7 +3,4 @@ thao
 1
 1
 anh yeu em
-dung
-123
-1
-0
+

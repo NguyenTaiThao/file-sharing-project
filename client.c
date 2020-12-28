@@ -606,23 +606,31 @@ int uploadFile(int sock, char groupName[50]){
 	read(sock, buffer, BUFF_SIZE);
 	if(atoi(buffer) != MEMBER_WAS_KICKED){
 		if(atoi(buffer) == UPLOAD_SUCCESS){
-			send(sock, groupName, strlen(groupName) + 1, 0);
-
-			printf("Enter file name: ");
 			clearBuff();
-			fgets(fileName, 50, stdin);
-			send(sock, fileName, sizeof(fileName), 0);
+			while(1){
+				send(sock, groupName, strlen(groupName) + 1, 0);
 
-			do{
-				printf("Enter path to file: ");
-				fgets(buffer, 100, stdin);
-				buffer[strlen(buffer) - 1] = '\0';
-				if(fopen(buffer, "r") != NULL){
-					break;
+				printf("Enter file name: ");
+				fgets(fileName, 50, stdin);
+
+				send(sock, fileName, sizeof(fileName), 0);
+				read(sock, buffer, BUFF_SIZE);
+				if(atoi(buffer) == EXISTENCE_FILE_NAME){
+					printf("File name is not available.\n");
 				}else{
-					printf("File is not available!!!!\n");
+					do{
+						printf("Enter path to file: ");
+						fgets(buffer, 100, stdin);
+						buffer[strlen(buffer) - 1] = '\0';
+						if(fopen(buffer, "r") != NULL){
+							break;
+						}else{
+							printf("File is not available!!\n");
+						}
+					}while(1);
+					break;
 				}
-			}while(1);
+			}
 			filePath[0] = '\0';
 			strcat(filePath, buffer);
 			SendFileToServer(sock, filePath);

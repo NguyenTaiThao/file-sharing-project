@@ -114,7 +114,6 @@ int main(int argc, char *argv[])
 	readGroupFile(&groups);
 	readFileFile(&files);
 	readUserFile(&users);
-	
 	while(1){
 		pthread_t tid; 
 
@@ -767,6 +766,10 @@ void* SendFileToClient(int new_socket, char fname[50], char group_name[50])
         {
             write(new_socket, buff, nread);
         }
+		read(new_socket, buff, BUFF_SIZE);
+		if(strcasecmp(buff, "continue") != 0){
+			break;
+		}
         if (nread < 1024)
         {
             if (feof(fp))
@@ -1321,7 +1324,10 @@ int receiveUploadedFile(int sock, char filePath[100]){
 		fwrite(recvBuff, 1,bytesReceived,fp);
 
 		if(bytesReceived < 1024){
+			send(sock, "broken", 7, 0);
 			break;
+		}else{
+			send(sock, "continue", 9, 0);
 		}
 	}
 	fclose(fp);
@@ -1430,7 +1436,7 @@ void * handleThread(void *my_sock){
 													if(atoi(buff) != NO_FILE_TO_DOWNLOAD){
 														printf("file da chon: %s\n", buff);
 														SendFileToClient(new_socket, buff, current_group);
-														updateDownloadedTimes(files, buff);
+														//updateDownloadedTimes(files, buff);
 													}else{
 														printf("No file to download.\n");
 													}

@@ -58,7 +58,10 @@ int receiveFile(int sock){
 		fwrite(recvBuff, 1,bytesReceived,fp);
 
 		if(bytesReceived < 1024){
+			send(sock, "broken", 7, 0);
 			break;
+		}else{
+			send(sock, "continue", 9, 0);
 		}
 	}
 	fclose(fp);
@@ -211,7 +214,7 @@ int menu3(char group_name[50])
 	printf("5. Kick\n");
 	printf("6. Back\n");
 	printf("==========================================================\n");
-    printf("=> Nhap lua chon cua ban: ");
+    printf("=> Enter your choice: ");
     catch = scanf("%d",&choice);
 
 	printf("\n\n");
@@ -234,28 +237,28 @@ void signUp(int sock){
 	
 	clearBuff();
 	while(1){
-		printf("Nhap tai khoan: ");
+		printf("Enter username: ");
 		fgets(username, 50, stdin);
 		while(strlen(username) <= 0 || username[0] == '\n'){
-			printf("Username khong duoc de trong!!\n");
-			printf("Nhap tai khoan: ");
+			printf("Username is empty!!!!!!!\n");
+			printf("Enter username: ");
 			fgets(username, 50, stdin);
 		}
 		send(sock, username, sizeof(username), 0);
 
 		read(sock, buff, BUFF_SIZE);
 		if(atoi(buff) == EXISTENCE_USERNAME){
-			printf("Username da duoc su dung!!\n");
+			printf("Username is not available!!\n");
 		}else{
 			break;
 		}
 	};
 
-	printf("Nhap mat khau: ");
+	printf("Enter password: ");
 	fgets(password, 50, stdin);
 	while(strlen(password) <= 0 || password[0] == '\n'){
-		printf("Mat khau khong duoc de trong!!\n");
-		printf("Nhap mat khau: ");
+		printf("Password is empty!!!!!!!!!\n");
+		printf("Enter password: ");
 		fgets(password, 50, stdin);
 	}
 	send(sock, password, sizeof(password), 0);
@@ -277,12 +280,12 @@ int signIn(int sock){
 	
 	clearBuff();
 	while(1){
-		printf("Nhap tai khoan: ");
+		printf("Enter username: ");
 		fgets(username, 50, stdin);
 		while(strlen(username) <= 0 || username[0] == '\n'){
 			username[0] = '\0';
-			printf("Username khong duoc de trong!!\n");
-			printf("Nhap tai khoan: ");
+			printf("Username is empty!!!!\n");
+			printf("Enter username: ");
 			fgets(username, 50, stdin);
 		}
 		
@@ -290,18 +293,18 @@ int signIn(int sock){
 
 		read(sock, buff, BUFF_SIZE);
 		if(atoi(buff) == NON_EXISTENCE_USERNAME){
-			printf("Username khong ton tai!!\n");
+			printf("Username is not available!!\n");
 		}else{
 			break;
 		}
 	}
 
-	printf("Nhap mat khau: ");
+	printf("Enter password: ");
 	// scanf("%s", password);
 	fgets(password, 50, stdin);
 	while(strlen(password) <= 0 || password[0] == '\n'){
-		printf("Mat khau khong duoc de trong!!\n");
-		printf("Nhap mat khau: ");
+		printf("Password is empty!!!!!\n");
+		printf("Enter password: ");
 		fgets(password, 50, stdin);
 		// scanf("%s", password);
 	}
@@ -537,7 +540,7 @@ void navigation(int sock){
 
 void createGroup(int sock){
 	char group_name[50];
-	printf("Nhap ten nhom: ");
+	printf("Enter group name: ");
 
 	clearBuff();
 
@@ -578,6 +581,10 @@ void* SendFileToServer(int new_socket, char fname[50])
         {
             write(new_socket, buff, nread);
         }
+		read(new_socket, buff, BUFF_SIZE);
+		if(strcasecmp(buff, "continue") != 0){
+			break;
+		}
         if (nread < 1024)
         {
             if (feof(fp))
@@ -601,19 +608,19 @@ int uploadFile(int sock, char groupName[50]){
 		if(atoi(buffer) == UPLOAD_SUCCESS){
 			send(sock, groupName, strlen(groupName) + 1, 0);
 
-			printf("Nhap ten file: ");
+			printf("Enter file name: ");
 			clearBuff();
 			fgets(fileName, 50, stdin);
 			send(sock, fileName, sizeof(fileName), 0);
 
 			do{
-				printf("Nhap duong dan toi file: ");
+				printf("Enter path to file: ");
 				fgets(buffer, 100, stdin);
 				buffer[strlen(buffer) - 1] = '\0';
 				if(fopen(buffer, "r") != NULL){
 					break;
 				}else{
-					printf("File khong hop le!!\n");
+					printf("File is not available!!!!\n");
 				}
 			}while(1);
 			filePath[0] = '\0';
@@ -622,7 +629,7 @@ int uploadFile(int sock, char groupName[50]){
 
 			
 		}else{
-			printf("He thong dang bao tri!!\n");
+			printf("System is under maintainace!!\n");
 		}
 	}else{
 		printf("You have been kicked out of this group!!!\n");

@@ -10,6 +10,30 @@
 
 #define BUFF_SIZE 100
 
+void sendWithCheck(int sock, char buff[BUFF_SIZE], int length, int option){
+	int sendByte = 0;
+	sendByte = send(sock, buff, length, option);
+	if(sendByte > 0){
+		
+	}else{
+		close(sock);
+		printf("Connection is interrupted.n");
+		exit(0);
+		// pthread_exit(0);
+	}
+}
+
+int readWithCheck(int sock, char buff[BUFF_SIZE], int length){
+	int recvByte = 0;
+	recvByte = read(sock, buff, length);
+	if(recvByte > 0){
+		return recvByte;
+	}else{
+		close(sock);
+		exit(0);
+	}
+}
+
 int printAvailableElements(char str[1000], char available_elements[20][50]){
 	char *token;
 	int number_of_available_elements = 0;
@@ -32,7 +56,7 @@ int receiveFile(int sock){
 	memset(recvBuff, '0', sizeof(recvBuff));
 	FILE *fp;
 	char fname[100], path[100];
-	read(sock, fname, 256);
+	readWithCheck(sock, fname, 256);
 	path[0] = '\0';
 	strcat(path, "./client_source/");
 	strcat(path, fname);
@@ -46,7 +70,7 @@ int receiveFile(int sock){
 	}
 	double sz=1;
 	/* Receive data in chunks of 256 bytes */
-	while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
+	while((bytesReceived = readWithCheck(sock, recvBuff, 1024)) > 0)
 	{
 		system("clear"); 
 		
@@ -58,10 +82,10 @@ int receiveFile(int sock){
 		fwrite(recvBuff, 1,bytesReceived,fp);
 
 		if(bytesReceived < 1024){
-			send(sock, "broken", 7, 0);
+			sendWithCheck(sock, "broken", 7, 0);
 			break;
 		}else{
-			send(sock, "continue", 9, 0);
+			sendWithCheck(sock, "continue", 9, 0);
 		}
 	}
 	fclose(fp);
@@ -84,6 +108,7 @@ void createGroup(int sock);
 int uploadFile(int sock, char groupName[50]);
 void sendCode(int sock, int code);
 void clearBuff();
+
 
 //=============== MAIN ==================
 int main(int argc, char *argv[]) 
@@ -232,7 +257,7 @@ void signUp(int sock){
 	char username[50], password[50], buff[BUFF_SIZE];
 	
 	sendCode(sock, REGISTER_REQUEST);
-    read(sock, buff, BUFF_SIZE);
+    readWithCheck(sock, buff, BUFF_SIZE);
 	printf("========================= SIGNUP ========================\n");
 	
 	clearBuff();
@@ -244,9 +269,9 @@ void signUp(int sock){
 			printf("Enter username: ");
 			fgets(username, 50, stdin);
 		}
-		send(sock, username, sizeof(username), 0);
+		sendWithCheck(sock, username, sizeof(username), 0);
 
-		read(sock, buff, BUFF_SIZE);
+		readWithCheck(sock, buff, BUFF_SIZE);
 		if(atoi(buff) == EXISTENCE_USERNAME){
 			printf("Username is not available!!\n");
 		}else{
@@ -261,9 +286,9 @@ void signUp(int sock){
 		printf("Enter password: ");
 		fgets(password, 50, stdin);
 	}
-	send(sock, password, sizeof(password), 0);
+	sendWithCheck(sock, password, sizeof(password), 0);
 
-	read(sock, buff, BUFF_SIZE);
+	readWithCheck(sock, buff, BUFF_SIZE);
 	if(atoi(buff) != REGISTER_SUCCESS){
 		printf("He thong dang bao tri!!\n");
 	}else{
@@ -275,7 +300,7 @@ int signIn(int sock){
 	char username[50], password[50], buff[BUFF_SIZE];
 
 	sendCode(sock, LOGIN_REQUEST);
-	read(sock, buff, BUFF_SIZE);
+	readWithCheck(sock, buff, BUFF_SIZE);
     printf("========================= SIGNIN ========================\n");
 	
 	clearBuff();
@@ -289,9 +314,9 @@ int signIn(int sock){
 			fgets(username, 50, stdin);
 		}
 		
-		send(sock, username, sizeof(username), 0);
+		sendWithCheck(sock, username, sizeof(username), 0);
 
-		read(sock, buff, BUFF_SIZE);
+		readWithCheck(sock, buff, BUFF_SIZE);
 		if(atoi(buff) == NON_EXISTENCE_USERNAME){
 			printf("Username is not available!!\n");
 		}else{
@@ -309,8 +334,8 @@ int signIn(int sock){
 		// scanf("%s", password);
 	}
 	// password[strlen(password) - 1] = '\0';
-	send(sock, password, sizeof(password) + 1, 0);
-	read(sock, buff, BUFF_SIZE);
+	sendWithCheck(sock, password, sizeof(password) + 1, 0);
+	readWithCheck(sock, buff, BUFF_SIZE);
 	if(atoi(buff) != LOGIN_SUCCESS){
 		printf("Login failed!!\n");
 		return 0;
@@ -338,21 +363,21 @@ void navigation(int sock){
 					case 1:
 						sendCode(sock, CREATE_GROUP_REQUEST);
 						createGroup(sock);
-						read(sock, buffer, 1000);
+						readWithCheck(sock, buffer, 1000);
 						printf("%s\n", buffer);
 						break;
 					case 2:
 						printf("========================== Available Group ==========================\n");
 						sendCode(sock, JOIN_GROUP_REQUEST);
-						read(sock, buffer, 1000); 
+						readWithCheck(sock, buffer, 1000); 
 						char available_group[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 						int number_of_available_groups = printAvailableElements(buffer, available_group);
 						int selected_group;
 						if(number_of_available_groups > 0){
 							printf("Which group do you want to join? (1-%d): ", number_of_available_groups);
 							scanf("%d", &selected_group);
-							send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 ); 
-							read(sock, buffer, 1000);
+							sendWithCheck(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 ); 
+							readWithCheck(sock, buffer, 1000);
 							if(atoi(buffer) == JOIN_GROUP_SUCCESS){
 								printf("Join successfully\n");
 							}else{
@@ -366,13 +391,13 @@ void navigation(int sock){
 					case 3:
 						printf("==================== Available Group ====================\n");
 						sendCode(sock, ACCESS_GROUP_REQUEST);
-						read(sock, buffer, 1000);
+						readWithCheck(sock, buffer, 1000);
 						number_of_available_groups = printAvailableElements(buffer, available_group);
 						if(number_of_available_groups > 0){
 							printf("Which group do you want to access? (1-%d): ", number_of_available_groups);
 							scanf("%d", &selected_group);
-							send(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 );
-							read(sock, buffer, 1000);
+							sendWithCheck(sock , available_group[selected_group-1] , strlen(available_group[selected_group-1]) + 1 , 0 );
+							readWithCheck(sock, buffer, 1000);
 							if(atoi(buffer) == ACCESS_GROUP_SUCCESS){
 								printf(" => Access %s successfully\n", available_group[selected_group-1]);
 								z3 = 0;
@@ -396,7 +421,7 @@ void navigation(int sock){
 								case 2:
 									sendCode(sock, DOWNLOAD_REQUEST);
 									printf("==================== Available Files =====================\n");
-									read(sock, buffer, 1000);
+									readWithCheck(sock, buffer, 1000);
 									if(atoi(buffer) != MEMBER_WAS_KICKED){
 										char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 										int number_of_available_files = printAvailableElements(buffer, available_files);
@@ -404,7 +429,7 @@ void navigation(int sock){
 										if(number_of_available_files > 0){
 											printf("Which file do you want to download? (1-%d): ", number_of_available_files);
 											scanf("%d", &selected_file);
-											send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+											sendWithCheck(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
 											if(receiveFile(sock) == 1){
 												printf("Open the file? (Y/n): ");
 												char choice[10], command[100];
@@ -428,7 +453,7 @@ void navigation(int sock){
 								case 3:
 									sendCode(sock, DELETE_REQUEST);
 									printf("==================== Available Files =====================\n");
-									read(sock, buffer, 1000); 
+									readWithCheck(sock, buffer, 1000); 
 									if(atoi(buffer) != MEMBER_WAS_KICKED){
 										char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 										int number_of_available_files = printAvailableElements(buffer, available_files);
@@ -436,7 +461,7 @@ void navigation(int sock){
 											int selected_file;
 											printf("Which file do you want to delete? (1-%d): ", number_of_available_files);
 											scanf("%d", &selected_file);
-											send(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
+											sendWithCheck(sock, available_files[selected_file-1] , strlen(available_files[selected_file-1]) + 1 , 0 );
 										}else{
 											printf("This group does not have any files");
 											sendCode(sock, NO_FILE_TO_DELETE);
@@ -449,7 +474,7 @@ void navigation(int sock){
 								case 4:
 									printf("======================= All Files ========================\n");
 									sendCode(sock, VIEW_FILES_REQUEST);
-									read(sock, buffer, 1000); 
+									readWithCheck(sock, buffer, 1000); 
 									if(atoi(buffer) != MEMBER_WAS_KICKED){
 										char available_files[20][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 										int number_of_available_files = printAvailableElements(buffer, available_files);
@@ -460,7 +485,7 @@ void navigation(int sock){
 									break;
 								case 5:
 									sendCode(sock, KICK_MEMBER_REQUEST);
-									read(sock, buffer, 1000);
+									readWithCheck(sock, buffer, 1000);
 									if(atoi(buffer) != MEMBER_WAS_KICKED){
 										if(atoi(buffer) == NOT_OWNER_OF_GROUP){
 											printf("!!! Only the administrator of group can do this\n");
@@ -473,7 +498,7 @@ void navigation(int sock){
 												int selected_member;
 												scanf("%d", &selected_member);
 												printf("select = %d\n%s\n", selected_member, available_members[selected_member-1]);
-												send(sock, available_members[selected_member-1] , strlen(available_members[selected_member-1]) + 1 , 0 );
+												sendWithCheck(sock, available_members[selected_member-1] , strlen(available_members[selected_member-1]) + 1 , 0 );
 											}else{
 												printf("This group does not have any members\n");
 												sendCode(sock, NO_MEMBER_TO_KICK);
@@ -511,16 +536,16 @@ void navigation(int sock){
 							char search_name[50];
 							printf("Enter the filename: ");
 							scanf("%s", search_name);
-							send(sock, search_name , strlen(search_name) + 1 , 0 );
+							sendWithCheck(sock, search_name , strlen(search_name) + 1 , 0 );
 						}
-						send(sock, category[category_choice-1] , strlen(category[category_choice-1]) + 1 , 0 );
-						read(sock, buffer, 1000);
+						sendWithCheck(sock, category[category_choice-1] , strlen(category[category_choice-1]) + 1 , 0 );
+						readWithCheck(sock, buffer, 1000);
 						char available_files[60][50] = {'\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0','\0'};
 						int number_of_available_files = printAvailableElements(buffer, available_files);
 						break;
 					case 5:
 						sendCode(sock, LOGOUT_REQUEST);
-						read(sock,buffer, BUFF_SIZE);
+						readWithCheck(sock,buffer, BUFF_SIZE);
 						printf("-->logout: %s\n", buffer);
 						if(atoi(buffer) == LOGOUT_SUCCESS){
 							printf("Logout successfully.\n");
@@ -546,13 +571,13 @@ void createGroup(int sock){
 
 	fgets(group_name, 50, stdin);
 	group_name[strlen(group_name) - 1] = '\0';
-	send(sock, group_name, strlen(group_name) + 1, 0);
+	sendWithCheck(sock, group_name, strlen(group_name) + 1, 0);
 }
 
 void sendCode(int sock, int code){
 	char codeStr[10];
 	sprintf(codeStr, "%d", code);
-	send(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
+	sendWithCheck(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
 }
 
 void clearBuff(){
@@ -569,19 +594,19 @@ void* SendFileToServer(int new_socket, char fname[50])
         printf("File open error");
     }   
 
-    /* Read data from file and send it */
+    /* Read data from file and sendWithCheck it */
     while(1)
     {
         /* First read file in chunks of 256 bytes */
         unsigned char buff[1024]={0};
         int nread = fread(buff,1,1024,fp);
 
-        /* If read was success, send data. */
+        /* If read was success, sendWithCheck data. */
         if(nread > 0)
         {
             write(new_socket, buff, nread);
         }
-		read(new_socket, buff, BUFF_SIZE);
+		readWithCheck(new_socket, buff, BUFF_SIZE);
 		if(strcasecmp(buff, "continue") != 0){
 			break;
 		}
@@ -603,18 +628,18 @@ int uploadFile(int sock, char groupName[50]){
 	char buffer[BUFF_SIZE];
 
 	sendCode(sock, UPLOAD_REQUEST);
-	read(sock, buffer, BUFF_SIZE);
+	readWithCheck(sock, buffer, BUFF_SIZE);
 	if(atoi(buffer) != MEMBER_WAS_KICKED){
 		if(atoi(buffer) == UPLOAD_SUCCESS){
 			clearBuff();
 			while(1){
-				send(sock, groupName, strlen(groupName) + 1, 0);
+				sendWithCheck(sock, groupName, strlen(groupName) + 1, 0);
 
 				printf("Enter file name: ");
 				fgets(fileName, 50, stdin);
 
-				send(sock, fileName, sizeof(fileName), 0);
-				read(sock, buffer, BUFF_SIZE);
+				sendWithCheck(sock, fileName, sizeof(fileName), 0);
+				readWithCheck(sock, buffer, BUFF_SIZE);
 				if(atoi(buffer) == EXISTENCE_FILE_NAME){
 					printf("File name is not available.\n");
 				}else{

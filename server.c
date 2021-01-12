@@ -57,6 +57,27 @@ int signIn(int sock, singleList users, user_struct **loginUser);
 void uploadFile(int sock, user_struct *loginUser);
 int receiveUploadedFile(int sock, char filePath[100]);
 void * handleThread(void *my_sock);
+void sendWithCheck(int sock, char buff[BUFF_SIZE], int length, int option){
+	int sendByte = 0;
+	sendByte = send(sock, buff, length, option);
+	if(sendByte > 0){
+		
+	}else{
+		close(sock);
+		pthread_exit(0);
+	}
+}
+
+int readWithCheck(int sock, char buff[BUFF_SIZE], int length){
+	int recvByte = 0;
+	recvByte = read(sock, buff, length);
+	if(recvByte > 0){
+		return recvByte;
+	}else{
+		close(sock);
+		pthread_exit(0);
+	}
+}
 
 //==============MAIN==============
 int main(int argc, char *argv[]) 
@@ -629,11 +650,11 @@ void getBasicInfoOfGroup(singleList groups, char group_name[50], char group_info
 
 void createGroup(int sock, singleList groups, user_struct *loginUser){
 	char buff[100], noti[100], cmd[100];
-	read(sock, buff, 100);
+	readWithCheck(sock, buff, 100);
 
 	if(checkExistence(2, groups, buff) == 1){
 		strcpy(noti, "Ten nhom vua nhap da duoc su dung.");
-		send(sock, noti, strlen(noti) + 1, 0);
+		sendWithCheck(sock, noti, strlen(noti) + 1, 0);
 	}else{
 		group_struct *group_element = (group_struct*) malloc(sizeof(group_struct));
 		singleList members, files;
@@ -662,7 +683,7 @@ void createGroup(int sock, singleList groups, user_struct *loginUser){
 		system(cmd);
 
 		strcpy(noti, "Create group successfully.\n");
-		send(sock, noti, strlen(noti) + 1, 0);
+		sendWithCheck(sock, noti, strlen(noti) + 1, 0);
 		writeToGroupFile(groups);
 		saveUsers(users);
 	}
@@ -672,7 +693,7 @@ void sendCode(int sock, int code){
 	char codeStr[10];
 	sprintf(codeStr, "%d", code);
 	printf("-->Response: %s\n", codeStr);
-	send(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
+	sendWithCheck(sock , codeStr , strlen(codeStr) + 1 , 0 ); 
 }
 
 singleList joinedGroups(singleList users, char username[50]){
@@ -766,7 +787,7 @@ void* SendFileToClient(int new_socket, char fname[50], char group_name[50])
         {
             write(new_socket, buff, nread);
         }
-		read(new_socket, buff, BUFF_SIZE);
+		readWithCheck(new_socket, buff, BUFF_SIZE);
 		if(strcasecmp(buff, "continue") != 0){
 			break;
 		}
@@ -1182,7 +1203,7 @@ void signUp(int sock, singleList *users){
 	sendCode(sock, REGISTER_SUCCESS);
 
 	while(1){
-		size = read(sock, buff, BUFF_SIZE);
+		size = readWithCheck(sock, buff, BUFF_SIZE);
 
 		strcpy(username, buff);
 		username[strlen(username) - 1] = '\0';
@@ -1200,7 +1221,7 @@ void signUp(int sock, singleList *users){
 	singleList groups;
 	createSingleList(&groups);
 
-	read(sock, buff, BUFF_SIZE);
+	readWithCheck(sock, buff, BUFF_SIZE);
 	buff[strlen(buff) - 1] = '\0';
 	if(buff[strlen(buff) - 2] == '\n'){
 		buff[strlen(buff) - 2] = '\0';
@@ -1225,7 +1246,7 @@ int signIn(int sock, singleList users, user_struct **loginUser){
 	sendCode(sock, LOGIN_SUCCESS);
 
 	while(1){
-		read(sock, buff, BUFF_SIZE);
+		readWithCheck(sock, buff, BUFF_SIZE);
 		buff[strlen(buff) - 1] = '\0';
 		printf("username: %s\n", buff);
 
@@ -1237,7 +1258,7 @@ int signIn(int sock, singleList users, user_struct **loginUser){
 			sendCode(sock, NON_EXISTENCE_USERNAME);
 		}
 	}
-	read(sock, buff, BUFF_SIZE);
+	readWithCheck(sock, buff, BUFF_SIZE);
 	buff[strlen(buff) - 1] = '\0';
 	printf("password: %s\n", buff);
 	strcpy(password, buff);
@@ -1257,10 +1278,10 @@ void uploadFile(int sock, user_struct *loginUser){
 	sendCode(sock, UPLOAD_SUCCESS);
 
 	while(1){
-		read(sock, buff, BUFF_SIZE);
+		readWithCheck(sock, buff, BUFF_SIZE);
 		strcpy(group_name, buff);
 		printf("group_name: %s\n - %ld", buff, strlen(buff));
-		read(sock, buff, BUFF_SIZE);
+		readWithCheck(sock, buff, BUFF_SIZE);
 		buff[strlen(buff) - 1] = '\0';
 		strcpy(file_name, buff);
 		if(checkExistence(3, files, file_name) == 1){
@@ -1323,7 +1344,7 @@ int receiveUploadedFile(int sock, char filePath[100]){
 	
 	double sz=1;
 	/* Receive data in chunks of 256 bytes */
-	while((bytesReceived = read(sock, recvBuff, 1024)) > 0)
+	while((bytesReceived = readWithCheck(sock, recvBuff, 1024)) > 0)
 	{ 
 		printf("\n\n\nbytes = %d\n",bytesReceived);
 		sz++;
@@ -1332,10 +1353,10 @@ int receiveUploadedFile(int sock, char filePath[100]){
 		fwrite(recvBuff, 1,bytesReceived,fp);
 
 		if(bytesReceived < 1024){
-			send(sock, "broken", 7, 0);
+			sendWithCheck(sock, "broken", 7, 0);
 			break;
 		}else{
-			send(sock, "continue", 9, 0);
+			sendWithCheck(sock, "continue", 9, 0);
 		}
 	}
 	fclose(fp);
@@ -1356,7 +1377,7 @@ void * handleThread(void *my_sock){
 	user_struct *loginUser = NULL;
 
 	while(1){
-		read( new_socket , buff, 100);
+		readWithCheck( new_socket , buff, 100);
 		REQUEST = atoi(buff);
 			switch (REQUEST)
 			{
@@ -1370,7 +1391,7 @@ void * handleThread(void *my_sock){
 					printf("LOGIN_REQUEST\n");
 					if(signIn(new_socket, users, &loginUser) == 1){
 						while(REQUEST != LOGOUT_REQUEST){
-							read( new_socket , buff, BUFF_SIZE);
+							readWithCheck( new_socket , buff, BUFF_SIZE);
 							REQUEST = atoi(buff);
 							switch (REQUEST)
 							{
@@ -1388,8 +1409,8 @@ void * handleThread(void *my_sock){
 								un_joined_group = unJoinedGroups(groups, users, loginUser->user_name);
 								char str[200];
 								convertSimpleGroupsToString(un_joined_group, str);
-								send(new_socket , str, strlen(str) + 1, 0 );
-								read( new_socket , buff, 100);
+								sendWithCheck(new_socket , str, strlen(str) + 1, 0 );
+								readWithCheck( new_socket , buff, 100);
 								if(atoi(buff) != NO_GROUP_TO_JOIN){
 									printf("nhom da chon: %s\n", buff);
 									if(addMember(groups, buff, loginUser->user_name) + addGroupToJoinedGroups(users, loginUser->user_name, buff) == 2){
@@ -1397,7 +1418,7 @@ void * handleThread(void *my_sock){
 										saveUsers(users);
 										writeToGroupFile(groups);
 									}else{
-										send(new_socket , "something went wrong", 21, 0 );
+										sendWithCheck(new_socket , "something went wrong", 21, 0 );
 									}
 								}else{
 									printf("No group to join.\n");
@@ -1409,15 +1430,15 @@ void * handleThread(void *my_sock){
 								createSingleList(&joined_group);
 								joined_group = joinedGroups(users, loginUser->user_name);
 								convertSimpleGroupsToString(joined_group, str);
-								send(new_socket , str, strlen(str) + 1, 0 );
-								read( new_socket , buff, 100);
+								sendWithCheck(new_socket , str, strlen(str) + 1, 0 );
+								readWithCheck( new_socket , buff, 100);
 								if(atoi(buff) != NO_GROUP_TO_ACCESS){
 									printf("nhom da chon: %s\n", buff);
 									char current_group[50];
 									strcpy(current_group, buff);
 									sendCode(new_socket, ACCESS_GROUP_SUCCESS);
 									while(REQUEST != BACK_REQUEST){
-										read( new_socket , buff, 100);
+										readWithCheck( new_socket , buff, 100);
 										REQUEST = atoi(buff);
 
 										switch (REQUEST)
@@ -1440,8 +1461,8 @@ void * handleThread(void *my_sock){
 													createSingleList(&all_files);
 													all_files = getAllFilesOfGroup(groups, current_group);
 													convertSimpleFilesToString(all_files, str);
-													send(new_socket , str, strlen(str) + 1, 0 );
-													read( new_socket , buff, 100);
+													sendWithCheck(new_socket , str, strlen(str) + 1, 0 );
+													readWithCheck( new_socket , buff, 100);
 													if(atoi(buff) != NO_FILE_TO_DOWNLOAD){
 														printf("file da chon: %s\n", buff);
 														SendFileToClient(new_socket, buff, current_group);
@@ -1462,8 +1483,8 @@ void * handleThread(void *my_sock){
 													createSingleList(&files_can_delete);
 													files_can_delete = getFilesCanDelete(files, groups, current_group ,loginUser->user_name);
 													convertSimpleFilesToString(files_can_delete, str);
-													send(new_socket , str, strlen(str) + 1, 0 );
-													read( new_socket , buff, 100);
+													sendWithCheck(new_socket , str, strlen(str) + 1, 0 );
+													readWithCheck( new_socket , buff, 100);
 													if(atoi(buff) != NO_FILE_TO_DELETE){
 														printf("file da chon: %s\n", buff);
 														deleteFile(&files, groups, current_group, buff);
@@ -1484,7 +1505,7 @@ void * handleThread(void *my_sock){
 													all_files = getAllFilesOfGroup(groups, current_group);
 													convertSimpleFilesToString(all_files, str);
 													printf("%s\n", str);
-													send(new_socket , str, strlen(str) + 1, 0 );
+													sendWithCheck(new_socket , str, strlen(str) + 1, 0 );
 												}else{
 													printf("kicked");
 													sendCode(new_socket, MEMBER_WAS_KICKED);
@@ -1501,8 +1522,8 @@ void * handleThread(void *my_sock){
 														createSingleList(&members);
 														members = getAllMembersOfGroup(groups, current_group);
 														convertSimpleUsersToString(members, str);
-														send(new_socket, str, strlen(str)+1, 0);
-														read(new_socket, buff, 100);
+														sendWithCheck(new_socket, str, strlen(str)+1, 0);
+														readWithCheck(new_socket, buff, 100);
 														if(atoi(buff) != NO_MEMBER_TO_KICK){
 															printf("group = %s, member = %s\n", current_group, buff);
 															kickMemberOut(&files,groups, users,current_group, buff);
@@ -1533,13 +1554,13 @@ void * handleThread(void *my_sock){
 								break;
 							case SEARCH_FILE_REQUEST: //request code: 15
 								printf("SEARCH_FILE_REQUEST\n");
-								read(new_socket, buff, 100);
+								readWithCheck(new_socket, buff, 100);
 								printf("Client want to search %s\n", buff);
 								singleList file_found;
 								createSingleList(&file_found);
 								file_found = searchFileByCategory(files, buff);
 								convertSimpleFilesToString(file_found, str);
-								send(new_socket, str, strlen(str)+1, 0);
+								sendWithCheck(new_socket, str, strlen(str)+1, 0);
 								break;
 							case LOGOUT_REQUEST: //request code: 14
 								printf("LOGOUT_REQUEST\n");

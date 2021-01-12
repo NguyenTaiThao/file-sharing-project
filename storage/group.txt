@@ -1,7 +1,13 @@
 anh yeu em
 thao
 0
-3
+5
 anh_yeu_e.txt
 anh.png
 test_pdf.pdf
+test.pdf
+test.png
+Trung's group
+trung
+0
+0
